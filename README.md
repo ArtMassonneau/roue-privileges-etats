@@ -18,8 +18,8 @@ C'est un **brouillon ouvert**, publié pour être contesté et amélioré. Versi
 | Géographie | critères | accès maritime et position sur les routes | liste ONU des pays sans littoral |
 | Ressources | donnée | rente des ressources naturelles en valeur absolue et terres arables par habitant | Banque mondiale |
 | Vulnérabilité climatique | donnée | score de vulnérabilité ND-GAIN | ND-GAIN Country Index 2026 |
-| Histoire coloniale | critères | métropole, bénéficiaire, épargné ou colonisé | Acemoglu, Johnson &amp; Robinson (2001), ICOW |
-| Monnaie | critères | monnaie de réserve, dette en monnaie locale | FMI COFER, Eichengreen &amp; Hausmann (1999) |
+| Histoire coloniale | critères | métropole, bénéficiaire, épargné ou colonisé | Acemoglu, Johnson & Robinson (2001), ICOW |
+| Monnaie | critères | monnaie de réserve, dette en monnaie locale | FMI COFER, Eichengreen & Hausmann (1999) |
 | Représentation | critères | veto CSNU, G7-G20, quote-part FMI | FMI |
 | Normes | critères | capacité à écrire les règles | Bradford (2020), ISO |
 | Soft power | donnée | rang Brand Finance Global Soft Power Index | Brand Finance 2026 |
@@ -46,7 +46,7 @@ Ouvrez une issue avec le gabarit « Contester un score », ou une pull request s
 
 ## Licence et citation
 
-Code : MIT. Données compilées et textes : CC BY 4.0. Les données brutes citées appartiennent à leurs producteurs respectifs (Banque mondiale, PNUD, ND-GAIN, Henley &amp; Partners, Brand Finance, Global Carbon Project).
+Code : MIT. Données compilées et textes : CC BY 4.0. Les données brutes citées appartiennent à leurs producteurs respectifs (Banque mondiale, PNUD, ND-GAIN, Henley & Partners, Brand Finance, Global Carbon Project).
 
 Pour citer ce travail, voir [CITATION.cff](CITATION.cff).
 
