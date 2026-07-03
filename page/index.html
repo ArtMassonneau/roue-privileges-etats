@@ -51,6 +51,16 @@
   .chip.on { background:#12101E; border-color:#12101E; color:#FFFAF1; }
   .controls-compare { margin-top:14px; }
   .compare-label { font-size:.74rem; color:#6b6772; font-weight:600; }
+  .compare-inputs { display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap; justify-content:center; }
+  .compare-field { position:relative; }
+  .cmp-input {
+    padding:9px 16px; font-size:.85rem; font-family:'Inter',sans-serif;
+    border:1.5px solid #e8e3f0; border-radius:24px; background:#fff;
+    width:200px; outline:none; transition:border-color .2s;
+  }
+  .cmp-input:focus { border-color:#E06030; }
+  .compare-vs { font-size:.78rem; font-weight:700; color:#6b6772; }
+  .sr-panel-cmp { left:0; top:44px; width:200px; }
   #search-results {
     position:relative; width:0; height:0;
   }
@@ -84,6 +94,8 @@
                border-radius:6px; overflow:hidden; }
   .sp-bar-fill { height:100%; border-radius:6px; transition:width .4s ease, background .4s; }
   .sp-label { font-size:.72rem; color:#6b6772; font-style:italic; }
+  .sp-ranks { font-size:.7rem; color:#9a8fa8; margin-top:2px; }
+  .sp-ranks b { color:#6b6772; font-weight:600; }
   .sp-close { font-size:.68rem; color:#9a8fa8; cursor:pointer; margin-top:2px;
               background:none; border:none; font-family:'Inter',sans-serif;
               text-decoration:underline; }
@@ -232,6 +244,7 @@
     .axd-row { grid-template-columns:96px 1fr; }
     .axd-row.two { grid-template-columns:96px 1fr 1fr; }
     .sr-panel { left:-130px; }
+    .sr-panel-cmp { left:0; }
   }
   @media (max-width:480px) {
     body { padding:28px 12px 48px; }
@@ -272,9 +285,17 @@
 <div class="controls controls-compare">
   <span class="compare-label">Comparer deux pays :</span>
   <button class="chip" id="chip-compare">Mode comparaison</button>
-  <button class="chip chip-preset" data-a="COD" data-b="NOR">RD Congo vs Norvège</button>
-  <button class="chip chip-preset" data-a="FRA" data-b="SEN">France vs Sénégal</button>
-  <button class="chip chip-preset" data-a="USA" data-b="HTI">États-Unis vs Haïti</button>
+  <div class="compare-inputs">
+    <div class="compare-field">
+      <input id="compare-a" class="cmp-input" type="text" placeholder="Pays A…" autocomplete="off">
+      <div class="sr-panel sr-panel-cmp" id="sr-panel-a"></div>
+    </div>
+    <span class="compare-vs">vs</span>
+    <div class="compare-field">
+      <input id="compare-b" class="cmp-input" type="text" placeholder="Pays B…" autocomplete="off">
+      <div class="sr-panel sr-panel-cmp" id="sr-panel-b"></div>
+    </div>
+  </div>
 </div>
 
 <div id="score-panel">
@@ -766,11 +787,13 @@ function renderPanel(){
     const sc=total(iso), col=scoreColor(sc);
     const div=document.createElement('div');
     div.className='sp-country';
+    const ord=n=>n===1?'1er':n+'e';
     div.innerHTML=`
       <div class="sp-name"><span class="sp-swatch" style="background:${color};${iso===selB?'border-radius:50%;border:2px dashed #12101E;background:transparent;':''}"></span>${DATA[iso].name}</div>
       <div class="sp-row"><div class="sp-num" style="color:${col}">${fmtScore(sc)}</div><div class="sp-denom">/ ${MAX}</div></div>
       <div class="sp-bar-bg"><div class="sp-bar-fill" style="width:${sc/MAX*100}%;background:${col}"></div></div>
-      <div class="sp-label">${scoreLabel(sc)}</div>`;
+      <div class="sp-label">${scoreLabel(sc)}</div>
+      <div class="sp-ranks">Rangs sur ${isoList.length} : privilège <b>${ord(privRanks[iso])}</b> · PIB <b>${gdpRanks[iso]?ord(gdpRanks[iso]):'n.d.'}</b> · IDH <b>${hdiRanks[iso]?ord(hdiRanks[iso]):'n.d.'}</b></div>`;
     head.appendChild(div);
   });
   // détail des axes : une colonne par pays, alignée sous son nom
@@ -811,10 +834,12 @@ function selectCountry(iso){
     selA=iso; if(selB===iso)selB=null;
   }
   paintWheel(); renderPanel(); syncRows(); updateHash();
+  if(window.syncCompareFields)syncCompareFields();
 }
 function closeAll(){
   selA=null; selB=null;
   paintWheel(); renderPanel(); syncRows(); updateHash();
+  if(window.syncCompareFields)syncCompareFields();
 }
 document.getElementById('sp-close').addEventListener('click',closeAll);
 document.getElementById('sp-detail-toggle').addEventListener('click',()=>{
@@ -828,17 +853,35 @@ document.getElementById('chip-compare').addEventListener('click',e=>{
   e.target.classList.toggle('on',compareMode);
   if(!compareMode&&selB){ selB=null; paintWheel(); renderPanel(); syncRows(); }
 });
-document.querySelectorAll('.chip-preset').forEach(chip=>{
-  chip.addEventListener('click',()=>{
-    compareMode=true;
-    document.getElementById('chip-compare').classList.add('on');
-    selA=chip.dataset.a; selB=chip.dataset.b;
-    paintWheel(); renderPanel(); syncRows(); updateHash();
-    document.getElementById('sp-detail').classList.add('open');
-    document.getElementById('sp-detail-toggle').textContent='Masquer le détail';
-    document.getElementById('score-panel').scrollIntoView({behavior:'smooth',block:'center'});
+function wireCompareInput(input,panel,which){
+  input.addEventListener('input',()=>{
+    const q=norm(input.value.trim());
+    if(!q){ panel.classList.remove('open'); return; }
+    const hits=isoList.filter(iso=>norm(DATA[iso].name).includes(q)).slice(0,8);
+    panel.innerHTML=hits.map(iso=>
+      `<div class="sr-item" data-iso="${iso}">${DATA[iso].name} · ${fmtScore(total(iso))}/${MAX}</div>`).join('')
+      ||'<div class="sr-item" style="color:#b0a9b5">Pays absent de cette version</div>';
+    panel.classList.add('open');
+    panel.querySelectorAll('.sr-item[data-iso]').forEach(item=>{
+      item.addEventListener('click',()=>{
+        compareMode=true;
+        document.getElementById('chip-compare').classList.add('on');
+        if(which==='a'){ selA=item.dataset.iso; } else { selB=item.dataset.iso; }
+        paintWheel(); renderPanel(); syncRows(); updateHash();
+        panel.classList.remove('open');
+        input.value=DATA[item.dataset.iso].name;
+        document.getElementById('sp-detail').classList.add('open');
+        document.getElementById('sp-detail-toggle').textContent='Masquer le détail';
+        document.getElementById('score-panel').scrollIntoView({behavior:'smooth',block:'center'});
+      });
+    });
   });
-});
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#'+input.id)&&!e.target.closest('#'+panel.id))panel.classList.remove('open');
+  });
+}
+wireCompareInput(document.getElementById('compare-a'),document.getElementById('sr-panel-a'),'a');
+wireCompareInput(document.getElementById('compare-b'),document.getElementById('sr-panel-b'),'b');
 
 // ═══════════════ RECHERCHE ═══════════════
 const searchInput=document.getElementById('search');
@@ -946,6 +989,70 @@ buildAllTables();
   });
 })();
 
+// ═══════════════ CHAMPS DE COMPARAISON ═══════════════
+(function(){
+  const fields=[
+    {input:document.getElementById('compare-a'), panel:document.getElementById('sr-panel-a'), slot:'a'},
+    {input:document.getElementById('compare-b'), panel:document.getElementById('sr-panel-b'), slot:'b'},
+  ];
+  function applySlots(a,b){
+    if(a&&b&&a===b)b=null;
+    selA=a||b; selB=(a&&b)?b:null;
+    compareMode=!!selB;
+    document.getElementById('chip-compare').classList.toggle('on',compareMode);
+    paintWheel(); renderPanel(); syncRows(); updateHash();
+    syncCompareFields();
+    if(selA&&selB){
+      document.getElementById('sp-detail').classList.add('open');
+      document.getElementById('sp-detail-toggle').textContent='Masquer le détail';
+      document.getElementById('score-panel').scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  }
+  let slots={a:null,b:null};
+  fields.forEach(({input,panel,slot})=>{
+    input.addEventListener('input',()=>{
+      const q=norm(input.value.trim());
+      if(!q){
+        panel.classList.remove('open');
+        slots[slot]=null;
+        applySlots(slots.a,slots.b);
+        return;
+      }
+      const hits=isoList.filter(iso=>norm(DATA[iso].name).includes(q)).slice(0,8);
+      panel.innerHTML=hits.map(iso=>
+        `<div class="sr-item" data-iso="${iso}">${DATA[iso].name} · ${fmtScore(total(iso))}/${MAX}</div>`).join('')
+        ||'<div class="sr-item" style="color:#b0a9b5">Pays absent de cette version</div>';
+      panel.classList.add('open');
+      panel.querySelectorAll('.sr-item[data-iso]').forEach(item=>{
+        item.addEventListener('click',()=>{
+          slots[slot]=item.dataset.iso;
+          panel.classList.remove('open');
+          applySlots(slots.a,slots.b);
+        });
+      });
+    });
+    input.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){
+        const first=panel.querySelector('.sr-item[data-iso]');
+        if(first&&panel.classList.contains('open')){
+          slots[slot]=first.dataset.iso;
+          panel.classList.remove('open');
+          applySlots(slots.a,slots.b);
+        }
+      }
+    });
+  });
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.compare-field'))
+      fields.forEach(f=>f.panel.classList.remove('open'));
+  });
+  window.syncCompareFields=function(){
+    slots={a:selA,b:selB};
+    fields[0].input.value=selA?DATA[selA].name:'';
+    fields[1].input.value=selB?DATA[selB].name:'';
+  };
+})();
+
 // ═══════════════ PERMALIENS ═══════════════
 function updateHash(){
   const frag=selA?(selB?`${selA}-vs-${selB}`:selA):'';
@@ -962,6 +1069,7 @@ function updateHash(){
     document.getElementById('chip-compare').classList.add('on');
   }
   paintWheel(); renderPanel(); syncRows();
+  if(window.syncCompareFields)syncCompareFields();
 })();
 
 // ═══════════════ IMAGE DE PARTAGE ═══════════════
