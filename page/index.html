@@ -49,6 +49,8 @@
   }
   .chip:hover { border-color:#E06030; color:#E06030; }
   .chip.on { background:#12101E; border-color:#12101E; color:#FFFAF1; }
+  .controls-compare { margin-top:14px; }
+  .compare-label { font-size:.74rem; color:#6b6772; font-weight:600; }
   #search-results {
     position:relative; width:0; height:0;
   }
@@ -259,16 +261,20 @@
 <div class="controls">
   <input id="search" type="text" placeholder="Chercher un pays…" autocomplete="off">
   <div id="search-results"><div class="sr-panel" id="sr-panel"></div></div>
-  <button class="chip" id="chip-compare">Mode comparaison</button>
   <button class="chip" id="chip-weights">Pondérations</button>
-  <button class="chip chip-preset" data-a="COD" data-b="NOR">RD Congo vs Norvège</button>
-  <button class="chip chip-preset" data-a="FRA" data-b="SEN">France vs Sénégal</button>
-  <button class="chip chip-preset" data-a="USA" data-b="HTI">États-Unis vs Haïti</button>
 </div>
 
 <div class="wheel-wrap">
   <svg id="wheel" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
        style="width:100%;height:auto;display:block;"></svg>
+</div>
+
+<div class="controls controls-compare">
+  <span class="compare-label">Comparer deux pays :</span>
+  <button class="chip" id="chip-compare">Mode comparaison</button>
+  <button class="chip chip-preset" data-a="COD" data-b="NOR">RD Congo vs Norvège</button>
+  <button class="chip chip-preset" data-a="FRA" data-b="SEN">France vs Sénégal</button>
+  <button class="chip chip-preset" data-a="USA" data-b="HTI">États-Unis vs Haïti</button>
 </div>
 
 <div id="score-panel">
