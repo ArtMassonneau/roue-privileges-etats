@@ -1,6 +1,6 @@
 # Méthodologie · v2.1 (juillet 2026)
 
-12 axes notés de 0 à 3 (3 = position la plus privilégiée), total sur 36, sans pondération (choix de simplicité discuté dans le README). 6 axes sont calculés depuis des données publiques avec seuils explicites, 6 axes sont notés selon des critères qualitatifs documentés. La version en ligne (https://arthurmassonneau.net/roue-des-privileges/) contient la même rubrique avec les références académiques complètes.
+12 axes notés de 0 à 3 (3 = position la plus privilégiée), total sur 36, sans pondération (choix de simplicité discuté dans le README, pondération réglable sur la page en ligne). 6 axes sont calculés depuis des données publiques avec seuils explicites, 6 axes sont notés selon des critères qualitatifs documentés. La version en ligne (https://arthurmassonneau.net/roue-des-privileges/) contient la même rubrique avec les références académiques complètes.
 
 Couverture : 190 des 193 membres de l'ONU. Exclus faute de données : Corée du Nord, Érythrée, Monaco. Scores attribués par analogie régionale documentée quand l'indicateur ne couvre pas le pays : vulnérabilité pour Andorre, Liechtenstein, Saint-Marin (profil voisins immédiats), Saint-Kitts-et-Nevis (petit État insulaire cyclonique), Soudan du Sud (profil Sahel et conflit) ; émissions cumulées de Saint-Marin (profil aligné sur l'Italie) ; ressources du Venezuela (réserves prouvées, rente non publiée) et de Cuba (nickel, PIB Banque mondiale arrêté à 2020).
 
@@ -32,19 +32,19 @@ Couverture : 190 des 193 membres de l'ONU. Exclus faute de données : Corée du 
 
 **Limite :** L'axe mélange accès physique et position relative ; un indicateur composite publié (distance aux marchés, trafic portuaire) serait plus robuste.
 
-## Ressources (dotation naturelle)
+## Ressources (sous-sol, forêt, terres)
 
 **Type :** donnée calculée
-**Indicateur :** Rente annuelle des ressources naturelles en valeur absolue : rente en % du PIB (Banque mondiale) multipliée par le PIB
-**Source :** Banque mondiale, Total natural resources rents (NY.GDP.TOTL.RT.ZS), dernière année disponible · https://data.worldbank.org/indicator/NY.GDP.TOTL.RT.ZS
+**Indicateur :** Le meilleur de deux sous-indicateurs : la rente annuelle des ressources naturelles en valeur absolue (énergie, minerais, forêt : rente en % du PIB multipliée par le PIB) et les terres arables par habitant
+**Source :** Banque mondiale, Total natural resources rents (NY.GDP.TOTL.RT.ZS) et Arable land (AG.LND.ARBL.HA.PC), dernière année disponible · https://data.worldbank.org/indicator/NY.GDP.TOTL.RT.ZS
 
 **Barème :**
-- **3** : 100 milliards de dollars par an ou plus
-- **2** : 20 à 100 milliards
-- **1** : 3 à 20 milliards
-- **0** : Moins de 3 milliards
+- **3** : Rente de 100 milliards de dollars par an ou plus, ou 0,8 hectare arable par habitant ou plus
+- **2** : Rente de 20 à 100 milliards, ou 0,35 à 0,8 ha/hab
+- **1** : Rente de 3 à 20 milliards, ou 0,12 à 0,35 ha/hab
+- **0** : Rente sous 3 milliards et moins de 0,12 ha/hab
 
-**Limite :** L'axe mesure la dotation héritée, pas la capacité à en capter la valeur : la RD Congo est bien dotée ici alors que la valeur ajoutée de ses minerais est captée ailleurs (cette capture relève des axes normes et poids de marché). La rente Banque mondiale couvre énergie, minerais et forêt, pas les terres agricoles, ce qui sous-estime des pays comme la France. Le Venezuela, qui ne publie plus ses données, est classé manuellement sur ses réserves prouvées.
+**Limite :** L'axe mesure la dotation héritée. La capacité à en capter la valeur est une autre affaire : la RD Congo est bien dotée ici alors que la valeur ajoutée de ses minerais est captée ailleurs (cette capture relève des axes normes et poids économique). Les terres arables sont comptées en surface par habitant, sans pondérer leur productivité : le Sahel ressort mieux que sa réalité agronomique. Le Venezuela, qui ne publie plus ses données de rente, est classé manuellement sur ses réserves prouvées.
 
 ## Vulnérabilité (au dérèglement climatique)
 
@@ -130,7 +130,7 @@ Couverture : 190 des 193 membres de l'ONU. Exclus faute de données : Corée du 
 
 **Limite :** Le soft power mesuré par sondage reflète aussi la notoriété économique ; l'indice est produit par un cabinet privé, pas par une institution académique.
 
-## Poids (de marché)
+## Poids (économique (PIB mondial))
 
 **Type :** donnée calculée
 **Indicateur :** Part du PIB mondial (PIB nominal, Banque mondiale 2024)

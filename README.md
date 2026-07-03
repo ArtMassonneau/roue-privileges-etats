@@ -16,14 +16,14 @@ C'est un **brouillon ouvert**, publié pour être contesté et amélioré. Versi
 |---|---|---|---|
 | Langue | critères | statut dans le système mondial des langues | de Swaan (2001), Calvet (1999) |
 | Géographie | critères | accès maritime et position sur les routes | liste ONU des pays sans littoral |
-| Ressources | donnée | rente des ressources naturelles en valeur absolue | Banque mondiale (NY.GDP.TOTL.RT.ZS) |
+| Ressources | donnée | rente des ressources naturelles en valeur absolue et terres arables par habitant | Banque mondiale |
 | Vulnérabilité climatique | donnée | score de vulnérabilité ND-GAIN | ND-GAIN Country Index 2026 |
 | Histoire coloniale | critères | métropole, bénéficiaire, épargné ou colonisé | Acemoglu, Johnson &amp; Robinson (2001), ICOW |
 | Monnaie | critères | monnaie de réserve, dette en monnaie locale | FMI COFER, Eichengreen &amp; Hausmann (1999) |
 | Représentation | critères | veto CSNU, G7-G20, quote-part FMI | FMI |
 | Normes | critères | capacité à écrire les règles | Bradford (2020), ISO |
 | Soft power | donnée | rang Brand Finance Global Soft Power Index | Brand Finance 2026 |
-| Poids de marché | donnée | part du PIB mondial | Banque mondiale 2024 |
+| Poids économique | donnée | part du PIB mondial | Banque mondiale 2024 |
 | Mobilité | donnée | destinations sans visa | Henley Passport Index, janvier 2026 |
 | Dette écologique | donnée | CO2 cumulé par habitant | Global Carbon Project via Our World in Data, Hickel (2020) |
 

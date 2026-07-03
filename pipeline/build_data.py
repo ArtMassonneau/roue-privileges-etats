@@ -282,6 +282,129 @@ SPRANK.update({
  'TKM':138,'TUV':190,'UZB':92,'VUT':191,'YEM':121,
 })
 
+# ── Concret par pays : langue(s) retenues pour l'axe LANGUE, monnaie ────────
+LANG = {
+ 'USA':"anglais",'GBR':"anglais",'FRA':"français",'DEU':"allemand",'ITA':"italien",
+ 'ESP':"espagnol",'PRT':"portugais",'NLD':"néerlandais (anglais courant)",
+ 'BEL':"français, néerlandais",'CHE':"allemand, français, italien",'AUT':"allemand",
+ 'SWE':"suédois (anglais courant)",'NOR':"norvégien (anglais courant)",
+ 'DNK':"danois (anglais courant)",'FIN':"finnois, suédois",'IRL':"anglais, irlandais",
+ 'GRC':"grec",'CZE':"tchèque",'HUN':"hongrois",'POL':"polonais",'ROU':"roumain",
+ 'UKR':"ukrainien",'RUS':"russe",'CAN':"anglais, français",'AUS':"anglais",
+ 'NZL':"anglais, maori",'MEX':"espagnol",'JPN':"japonais",'KOR':"coréen",
+ 'CHN':"chinois (mandarin)",'IND':"hindi, anglais",'PAK':"ourdou, anglais",
+ 'BGD':"bengali",'LKA':"cinghalais, tamoul",'NPL':"népalais",'IDN':"indonésien",
+ 'MYS':"malais",'SGP':"anglais, malais, chinois, tamoul",'THA':"thaï",
+ 'VNM':"vietnamien",'KHM':"khmer",'LAO':"lao",'MMR':"birman",'MNG':"mongol",
+ 'KAZ':"kazakh, russe",'AFG':"dari, pachto",'PNG':"anglais, tok pisin",
+ 'FJI':"anglais, fidjien",'SAU':"arabe",'ARE':"arabe",'QAT':"arabe",'ISR':"hébreu",
+ 'IRN':"persan",'IRQ':"arabe, kurde",'JOR':"arabe",'LBN':"arabe",'TUR':"turc",
+ 'EGY':"arabe",'MAR':"arabe, amazighe",'DZA':"arabe, amazighe",'TUN':"arabe",
+ 'LBY':"arabe",'SDN':"arabe, anglais",'NGA':"anglais",
+ 'ZAF':"anglais (+ 10 langues officielles)",'KEN':"swahili, anglais",
+ 'ETH':"amharique",'TZA':"swahili, anglais",'UGA':"anglais, swahili",'GHA':"anglais",
+ 'CIV':"français",'SEN':"français",'MLI':"langues nationales, français (travail)",
+ 'NER':"langues nationales, français (travail)",'TCD':"français, arabe",
+ 'CMR':"français, anglais",'COD':"français",'AGO':"portugais",'MOZ':"portugais",
+ 'ZMB':"anglais",'ZWE':"anglais, shona, ndébélé",'RWA':"kinyarwanda, anglais, français",
+ 'BDI':"kirundi, français",'MUS':"anglais, français, créole",'BRA':"portugais",
+ 'ARG':"espagnol",'CHL':"espagnol",'PER':"espagnol, quechua",'COL':"espagnol",
+ 'VEN':"espagnol",'BOL':"espagnol, quechua, aymara",'ECU':"espagnol",'URY':"espagnol",
+ 'PAN':"espagnol",'GTM':"espagnol",'DOM':"espagnol",'JAM':"anglais",'CUB':"espagnol",
+ 'HTI':"créole, français",'PHL':"filipino, anglais",
+ 'ALB':"albanais",'AND':"catalan",'ATG':"anglais",'ARM':"arménien",'AZE':"azéri",
+ 'BHS':"anglais",'BHR':"arabe",'BRB':"anglais",'BLR':"biélorusse, russe",
+ 'BLZ':"anglais",'BEN':"français",'BTN':"dzongkha",'BIH':"bosnien, serbe, croate",
+ 'BWA':"anglais, tswana",'BRN':"malais",'BGR':"bulgare",
+ 'BFA':"langues nationales, français (travail)",'CPV':"portugais",
+ 'CAF':"sango, français",'COM':"comorien, arabe, français",'COG':"français",
+ 'CRI':"espagnol",'HRV':"croate",'CYP':"grec, turc (anglais courant)",
+ 'DJI':"français, arabe",'DMA':"anglais",'SLV':"espagnol",
+ 'GNQ':"espagnol, français, portugais",'EST':"estonien (anglais courant)",
+ 'SWZ':"swati, anglais",'GAB':"français",'GMB':"anglais",'GEO':"géorgien",
+ 'GRD':"anglais",'GIN':"français",'GNB':"portugais",'GUY':"anglais",
+ 'HND':"espagnol",'ISL':"islandais (anglais courant)",'KIR':"gilbertin, anglais",
+ 'KWT':"arabe",'KGZ':"kirghize, russe",'LVA':"letton (anglais courant)",
+ 'LSO':"sotho, anglais",'LBR':"anglais",'LIE':"allemand",
+ 'LTU':"lituanien (anglais courant)",'LUX':"luxembourgeois, français, allemand",
+ 'MDG':"malgache, français",'MWI':"chichewa, anglais",'MDV':"divehi",
+ 'MLT':"maltais, anglais",'MHL':"marshallais, anglais",'MRT':"arabe",
+ 'FSM':"anglais",'MDA':"roumain",'MNE':"monténégrin",'NAM':"anglais",
+ 'NRU':"nauruan, anglais",'NIC':"espagnol",'MKD':"macédonien, albanais",
+ 'OMN':"arabe",'PLW':"paluan, anglais",'PRY':"espagnol, guarani",'KNA':"anglais",
+ 'LCA':"anglais",'VCT':"anglais",'WSM':"samoan, anglais",'SMR':"italien",
+ 'STP':"portugais",'SRB':"serbe",'SYC':"créole, anglais, français",'SLE':"anglais",
+ 'SVK':"slovaque",'SVN':"slovène",'SLB':"anglais, pijin",'SOM':"somali, arabe",
+ 'SSD':"anglais",'SUR':"néerlandais",'SYR':"arabe",'TJK':"tadjik",
+ 'TLS':"tétoum, portugais",'TGO':"français",'TON':"tongien, anglais",
+ 'TTO':"anglais",'TKM':"turkmène",'TUV':"tuvaluan, anglais",'UZB':"ouzbek",
+ 'VUT':"bichelamar, anglais, français",'YEM':"arabe",
+}
+
+CUR = {
+ 'USA':"dollar américain",'GBR':"livre sterling",'JPN':"yen",'CHE':"franc suisse",
+ 'LIE':"franc suisse",'CHN':"yuan",'SWE':"couronne suédoise",'NOR':"couronne norvégienne",
+ 'DNK':"couronne danoise (arrimée à l'euro)",'CZE':"couronne tchèque",'HUN':"forint",
+ 'POL':"złoty",'ROU':"leu roumain",'UKR':"hryvnia",'RUS':"rouble",
+ 'CAN':"dollar canadien",'AUS':"dollar australien",'NZL':"dollar néo-zélandais",
+ 'MEX':"peso mexicain",'KOR':"won",'IND':"roupie indienne",'PAK':"roupie pakistanaise",
+ 'BGD':"taka",'LKA':"roupie srilankaise",'NPL':"roupie népalaise (arrimée à la roupie indienne)",
+ 'IDN':"roupie indonésienne",'MYS':"ringgit",'SGP':"dollar de Singapour",'THA':"baht",
+ 'VNM':"dong",'KHM':"riel (dollar co-circulant)",'LAO':"kip",'MMR':"kyat",
+ 'MNG':"tugrik",'KAZ':"tenge",'AFG':"afghani",'PNG':"kina",'FJI':"dollar fidjien",
+ 'SAU':"riyal saoudien (arrimé au dollar)",'ARE':"dirham (arrimé au dollar)",
+ 'QAT':"riyal qatari (arrimé au dollar)",'ISR':"shekel",'IRN':"rial iranien",
+ 'IRQ':"dinar irakien",'JOR':"dinar jordanien (arrimé au dollar)",'LBN':"livre libanaise",
+ 'TUR':"livre turque",'EGY':"livre égyptienne",'MAR':"dirham marocain",
+ 'DZA':"dinar algérien",'TUN':"dinar tunisien",'LBY':"dinar libyen",
+ 'SDN':"livre soudanaise",'NGA':"naira",'ZAF':"rand",'KEN':"shilling kényan",
+ 'ETH':"birr",'TZA':"shilling tanzanien",'UGA':"shilling ougandais",'GHA':"cedi",
+ 'CIV':"franc CFA (UEMOA)",'SEN':"franc CFA (UEMOA)",'MLI':"franc CFA (UEMOA)",
+ 'NER':"franc CFA (UEMOA)",'TGO':"franc CFA (UEMOA)",'BEN':"franc CFA (UEMOA)",
+ 'BFA':"franc CFA (UEMOA)",'GNB':"franc CFA (UEMOA)",'TCD':"franc CFA (CEMAC)",
+ 'CMR':"franc CFA (CEMAC)",'GAB':"franc CFA (CEMAC)",'COG':"franc CFA (CEMAC)",
+ 'CAF':"franc CFA (CEMAC)",'GNQ':"franc CFA (CEMAC)",'COD':"franc congolais",
+ 'AGO':"kwanza",'MOZ':"metical",'ZMB':"kwacha zambien",
+ 'ZWE':"ZiG (après hyperinflations)",'RWA':"franc rwandais",'BDI':"franc burundais",
+ 'MUS':"roupie mauricienne",'BRA':"réal",'ARG':"peso argentin",'CHL':"peso chilien",
+ 'PER':"sol",'COL':"peso colombien",'VEN':"bolivar",'BOL':"boliviano",
+ 'ECU':"dollar américain (dollarisé)",'URY':"peso uruguayen",
+ 'PAN':"balboa + dollar américain",'GTM':"quetzal",'DOM':"peso dominicain",
+ 'JAM':"dollar jamaïcain",'CUB':"peso cubain",'HTI':"gourde",'PHL':"peso philippin",
+ 'ALB':"lek",'AND':"euro (accord monétaire)",'ARM':"dram",'AZE':"manat azerbaïdjanais",
+ 'BHS':"dollar bahaméen (arrimé au dollar)",'BHR':"dinar bahreïni (arrimé au dollar)",
+ 'BRB':"dollar barbadien (arrimé au dollar)",'BLR':"rouble biélorusse",
+ 'BLZ':"dollar bélizien (arrimé au dollar)",'BTN':"ngultrum (arrimé à la roupie indienne)",
+ 'BIH':"mark convertible (arrimé à l'euro)",'BWA':"pula",'BRN':"dollar de Brunei",
+ 'CPV':"escudo cap-verdien (arrimé à l'euro)",'COM':"franc comorien (arrimé à l'euro)",
+ 'CRI':"colón",'DJI':"franc de Djibouti (arrimé au dollar)",
+ 'SLV':"dollar américain (dollarisé)",'SWZ':"lilangeni (arrimé au rand)",
+ 'GMB':"dalasi",'GEO':"lari",'GIN':"franc guinéen",'GUY':"dollar guyanien",
+ 'HND':"lempira",'ISL':"couronne islandaise",'KIR':"dollar australien",
+ 'NRU':"dollar australien",'TUV':"dollar australien",'KWT':"dinar koweïtien",
+ 'KGZ':"som",'LSO':"loti (arrimé au rand)",'LBR':"dollar libérien + dollar américain",
+ 'MDG':"ariary",'MWI':"kwacha malawite",'MDV':"rufiyaa",'MHL':"dollar américain",
+ 'FSM':"dollar américain",'PLW':"dollar américain",'TLS':"dollar américain",
+ 'MRT':"ouguiya",'MDA':"leu moldave",'MNE':"euro (adopté unilatéralement)",
+ 'NAM':"dollar namibien (arrimé au rand)",'NIC':"córdoba",
+ 'MKD':"denar (arrimé à l'euro)",'OMN':"rial omanais (arrimé au dollar)",
+ 'PRY':"guarani",'WSM':"tala",'SMR':"euro (accord monétaire)",
+ 'STP':"dobra (arrimé à l'euro)",'SRB':"dinar serbe",'SYC':"roupie seychelloise",
+ 'SLE':"leone",'SLB':"dollar des Salomon",'SOM':"shilling somalien + dollar",
+ 'SSD':"livre sud-soudanaise",'SUR':"dollar surinamien",'SYR':"livre syrienne",
+ 'TJK':"somoni",'TON':"pa'anga",'TTO':"dollar de Trinité-et-Tobago",
+ 'TKM':"manat turkmène",'UZB':"soum",'VUT':"vatu",'YEM':"rial yéménite",
+ 'ATG':"dollar des Caraïbes orientales (arrimé au dollar)",
+ 'KNA':"dollar des Caraïbes orientales (arrimé au dollar)",
+ 'LCA':"dollar des Caraïbes orientales (arrimé au dollar)",
+ 'VCT':"dollar des Caraïbes orientales (arrimé au dollar)",
+ 'DMA':"dollar des Caraïbes orientales (arrimé au dollar)",
+ 'GRD':"dollar des Caraïbes orientales (arrimé au dollar)",
+}
+EURO = ['FRA','DEU','ITA','ESP','PRT','NLD','BEL','AUT','FIN','IRL','GRC',
+        'BGR','HRV','CYP','EST','LVA','LTU','LUX','MLT','SVK','SVN']
+for iso in EURO: CUR[iso] = "euro"
+
 # ── Compléments manuels (données Banque mondiale absentes) ──────────────────
 # Venezuela : rente pétrolière non publiée depuis des années, mais premières
 # réserves prouvées de pétrole au monde (OPEP) -> dotation majeure.
@@ -310,6 +433,7 @@ def wb_latest(path):
 gdp_all = wb_latest('gdp_multi.json')     # PIB 2015-2024, dernière année
 pop_all = wb_latest('pop_multi.json')     # population 2020-2024
 rents   = wb_latest('rents_multi2.json')  # rente %PIB 2015-2023
+arable  = wb_latest('arable.json')        # terres arables ha/hab 2015-2022
 pop = {k: v[0] for k, v in pop_all.items()}
 
 # IDH (OWID, dernière année)
@@ -348,12 +472,20 @@ def gdp_of(iso):
     return (None, None)
 
 def score_res(iso):
-    # dotation en ressources naturelles : rente absolue (rente %PIB x PIB, Md$)
+    # dotation naturelle = max(sous-sol, sol) :
+    # rente absolue (énergie, minerais, forêt : rente %PIB x PIB, Md$)
+    # et terres arables par habitant (ha/hab)
     g, _ = gdp_of(iso)
-    if iso not in rents or not g: return None, None
-    abs_rent = rents[iso][0] / 100 * g / 1e9
-    s = 3 if abs_rent >= 100 else 2 if abs_rent >= 20 else 1 if abs_rent >= 3 else 0
-    return s, round(abs_rent, 1)
+    abs_rent = rents[iso][0] / 100 * g / 1e9 if (iso in rents and g) else None
+    ar = arable[iso][0] if iso in arable else None
+    s_rent = None if abs_rent is None else (
+        3 if abs_rent >= 100 else 2 if abs_rent >= 20 else 1 if abs_rent >= 3 else 0)
+    s_ar = None if ar is None else (
+        3 if ar >= 0.8 else 2 if ar >= 0.35 else 1 if ar >= 0.12 else 0)
+    if s_rent is None and s_ar is None: return None, None, None
+    s = max(v for v in (s_rent, s_ar) if v is not None)
+    return s, (round(abs_rent, 1) if abs_rent is not None else None), \
+           (round(ar, 2) if ar is not None else None)
 
 def score_vul(iso):
     if iso not in vul: return None, None
@@ -388,7 +520,7 @@ def score_sp(iso):
 def main():
     out, excluded, gaps = {}, [], []
     for iso, (name, cat) in CAT.items():
-        res, res_v = score_res(iso)
+        res, res_v, res_ar = score_res(iso)
         vu, vu_v   = score_vul(iso)
         po, po_v   = score_poids(iso)
         ec, ec_v   = score_eco(iso)
@@ -418,8 +550,10 @@ def main():
                 'gdp_bn': round(g/1e9, 1) if g else None,
                 'gdp_year': int(gyr) if gyr else None,
                 'gdp_share': po_v, 'hdi': h[0], 'hdi_year': h[1],
-                'rent_bn': res_v, 'ndgain_vul': vu_v, 'cumco2_percap': ec_v,
+                'rent_bn': res_v, 'arable_hapc': res_ar,
+                'ndgain_vul': vu_v, 'cumco2_percap': ec_v,
                 'henley': mo_v, 'sp_rank': sp_v,
+                'lang': LANG.get(iso), 'cur': CUR.get(iso),
             },
         }
     json.dump(out, open(f"{S}/countries.json", 'w'), ensure_ascii=False, indent=1)
