@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "Si vous utilisez cet outil ou ces données, merci de les citer ainsi."
+title: "La roue des privilèges des États"
+authors:
+  - family-names: Massonneau
+    given-names: Arthur
+version: 2.1
+date-released: 2026-07-03
+url: "https://arthurmassonneau.net/roue-des-privileges/"
+repository-code: "https://github.com/ArtMassonneau/roue-privileges-etats"
+license: CC-BY-4.0
+abstract: >-
+  Transposition de la roue des privilèges à l'échelle des États :
+  190 membres de l'ONU notés de 0 à 3 sur 12 axes d'avantages
+  structurels hérités (langue, géographie, ressources, vulnérabilité
+  climatique, histoire coloniale, monnaie, représentation, normes,
+  soft power, poids de marché, mobilité, dette écologique).

@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La roue des privilèges des États</title>
+<meta name="description" content="Un outil visuel pour rendre visibles les avantages structurels hérités par les États : langue, géographie, histoire coloniale, monnaie, normes, mobilité. 190 pays, 12 axes, méthodologie ouverte.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body {
+    background:#FFFAF1; color:#12101E;
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:40px 20px 64px; min-height:100vh;
+  }
+  h1 { font-family:'League Spartan','Inter',sans-serif; font-size:1.6rem; font-weight:800;
+       letter-spacing:-0.01em; text-align:center; margin-bottom:10px; }
+  .version-badge {
+    display:inline-block; font-size:.66rem; font-weight:600; letter-spacing:.05em;
+    color:#E06030; border:1px solid #E06030; border-radius:20px;
+    padding:3px 12px; margin-bottom:14px; text-transform:uppercase;
+  }
+  .subtitle { font-size:.85rem; color:#6b6772; text-align:center; max-width:620px;
+              line-height:1.7; margin-bottom:10px; }
+  .nav-links { display:flex; gap:18px; margin:8px 0 22px; flex-wrap:wrap; justify-content:center; }
+  .nav-links a { font-size:.74rem; color:#E06030; text-decoration:none; font-weight:600;
+                 border-bottom:1px solid transparent; }
+  .nav-links a:hover { border-bottom-color:#E06030; }
+  .wheel-wrap { width:100%; max-width:880px; }
+
+  /* ── Recherche & sélection ───────────────────────────── */
+  .controls {
+    display:flex; gap:10px; align-items:center; justify-content:center;
+    flex-wrap:wrap; margin:6px 0 4px; width:100%; max-width:760px;
+  }
+  #search {
+    padding:9px 16px; font-size:.85rem; font-family:'Inter',sans-serif;
+    border:1.5px solid #e8e3f0; border-radius:24px; background:#fff;
+    width:260px; outline:none; transition:border-color .2s;
+  }
+  #search:focus { border-color:#E06030; }
+  .chip {
+    font-size:.72rem; padding:6px 13px; border-radius:20px; cursor:pointer;
+    background:#fff; border:1.5px solid #e8e3f0; color:#6b6772;
+    font-weight:600; transition:all .15s; font-family:'Inter',sans-serif;
+  }
+  .chip:hover { border-color:#E06030; color:#E06030; }
+  .chip.on { background:#12101E; border-color:#12101E; color:#FFFAF1; }
+  #search-results {
+    position:relative; width:0; height:0;
+  }
+  .sr-panel {
+    position:absolute; top:6px; left:-130px; width:260px; z-index:20;
+    background:#fff; border:1.5px solid #e8e3f0; border-radius:12px;
+    box-shadow:0 6px 24px rgba(18,16,30,.12); overflow:hidden; display:none;
+  }
+  .sr-panel.open { display:block; }
+  .sr-item { padding:8px 14px; font-size:.8rem; cursor:pointer; }
+  .sr-item:hover { background:#f7f2ec; }
+
+  /* ── Panneaux score / comparaison ────────────────────── */
+  #score-panel {
+    display:none; flex-direction:column; align-items:center; gap:10px;
+    padding:20px 28px; background:#fff; border-radius:16px;
+    box-shadow:0 2px 20px rgba(18,16,30,.09);
+    margin:18px 0 6px; width:100%; max-width:640px;
+  }
+  #score-panel.visible { display:flex; }
+  .sp-head { display:flex; gap:32px; align-items:flex-start; justify-content:center; flex-wrap:wrap; }
+  .sp-country { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:170px; }
+  .sp-name { font-family:'League Spartan',sans-serif; font-size:1.12rem;
+             font-weight:800; color:#12101E; display:flex; align-items:center; gap:8px; }
+  .sp-swatch { width:11px; height:11px; border-radius:3px; display:inline-block; }
+  .sp-row  { display:flex; align-items:baseline; gap:6px; }
+  .sp-num  { font-family:'League Spartan',sans-serif; font-size:2.3rem;
+             font-weight:800; line-height:1; }
+  .sp-denom { font-size:.85rem; color:#9a8fa8; }
+  .sp-bar-bg { width:190px; height:8px; background:#e8e3f0;
+               border-radius:6px; overflow:hidden; }
+  .sp-bar-fill { height:100%; border-radius:6px; transition:width .4s ease, background .4s; }
+  .sp-label { font-size:.72rem; color:#6b6772; font-style:italic; }
+  .sp-close { font-size:.68rem; color:#9a8fa8; cursor:pointer; margin-top:2px;
+              background:none; border:none; font-family:'Inter',sans-serif;
+              text-decoration:underline; }
+  .sp-detail-toggle {
+    font-size:.72rem; color:#E06030; cursor:pointer; background:none; border:none;
+    font-weight:600; font-family:'Inter',sans-serif; padding:4px 8px;
+  }
+  #sp-detail { display:none; width:100%; margin-top:6px; border-top:1px solid #f3ede8; padding-top:12px; }
+  #sp-detail.open { display:block; }
+  .axd-row { display:grid; grid-template-columns:140px 1fr; gap:4px 12px; align-items:start;
+             padding:7px 0; font-size:.73rem; border-bottom:1px solid #f7f2ec; }
+  .axd-row.two { grid-template-columns:140px 1fr 1fr; }
+  .axd-row:last-child { border-bottom:none; }
+  .axd-head-row { border-bottom:1.5px solid #e8e3f0; padding-bottom:8px; }
+  .axd-col-name { font-family:'League Spartan',sans-serif; font-weight:800; font-size:.78rem;
+                  color:#12101E; text-align:center; }
+  .axd-name { color:#12101E; font-weight:600; padding-top:2px; }
+  .axd-cell { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .axd-val { color:#9a8fa8; font-size:.66rem; text-align:center; line-height:1.45; max-width:200px; }
+  .axd-dots { display:flex; gap:3px; align-items:center; }
+  .axd-dot { width:9px; height:9px; border-radius:50%; background:#eee5dc; }
+
+  /* ── Pondérations ────────────────────────────────────── */
+  #weights-panel { display:none; width:100%; max-width:820px; margin-top:18px;
+                   background:#fff; border:1px solid #e8e3f0; border-radius:14px;
+                   padding:18px 22px; }
+  #weights-panel.open { display:block; }
+  .wp-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .wp-title { font-family:'League Spartan',sans-serif; font-weight:800; font-size:.9rem; }
+  .wp-reset { font-size:.7rem; color:#E06030; background:none; border:none; cursor:pointer;
+              font-weight:600; font-family:'Inter',sans-serif; text-decoration:underline; }
+  .wp-note { font-size:.74rem; color:#6b6772; line-height:1.6; margin-bottom:14px; }
+  .wp-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 28px; }
+  .wp-row { display:grid; grid-template-columns:110px 1fr 30px; gap:8px; align-items:center; }
+  .wp-label { font-size:.68rem; font-weight:700; font-family:'League Spartan',sans-serif;
+              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .wp-row input[type=range] { width:100%; accent-color:#E06030; }
+  .wp-val { font-size:.7rem; color:#6b6772; font-weight:600; text-align:right; }
+  @media (max-width:700px){ .wp-grid { grid-template-columns:1fr; } }
+
+  /* ── Tables ──────────────────────────────────────────── */
+  .tables-row {
+    display:flex; gap:16px; width:100%; max-width:1260px;
+    margin-top:24px; align-items:flex-start;
+  }
+  .table-col { flex:1; min-width:0; }
+  .table-header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .table-title { font-family:'League Spartan',sans-serif; font-size:.82rem;
+                 font-weight:800; letter-spacing:.02em; color:#12101E; }
+  .table-note { font-size:.63rem; color:#b0a9b5; }
+  .table-scroll { max-height:510px; overflow-y:auto; overflow-x:auto; border:1px solid #e8e3f0;
+                  border-radius:12px; background:#fffdf8; }
+  .table-scroll table { width:100%; border-collapse:collapse; }
+  .table-scroll thead { position:sticky; top:0; z-index:2; }
+  thead th { text-align:left; padding:7px 8px; font-size:.63rem; color:#9a8fa8;
+             text-transform:uppercase; letter-spacing:.06em; font-weight:600;
+             border-bottom:1.5px solid #e8e3f0; background:#FFFAF1; }
+  thead th.right { text-align:right; } thead th.center { text-align:center; }
+  tbody tr { cursor:pointer; transition:background .12s; border-bottom:1px solid #f3ede8; }
+  tbody tr:hover { background:#f7f2ec; }
+  tbody tr.active { background:#fff; box-shadow:0 1px 12px rgba(18,16,30,.08); }
+  tbody tr.active-b { background:#fdf6ee; box-shadow:inset 3px 0 0 #12101E; }
+  tbody tr.filtered { display:none; }
+  tbody td { padding:7px 8px; font-size:.77rem; vertical-align:middle; }
+  .td-rank { color:#9a8fa8; font-size:.68rem; width:22px; padding-right:4px; }
+  .td-country { font-weight:600; color:#12101E; white-space:nowrap;
+                max-width:130px; overflow:hidden; text-overflow:ellipsis; }
+  .td-value { color:#6b6772; font-size:.71rem; text-align:right; white-space:nowrap; padding-right:10px; }
+  .td-privrank { text-align:center; width:46px; font-size:.68rem; color:#9a8fa8; }
+  .td-score { white-space:nowrap; min-width:80px; }
+  .score-inline { display:flex; align-items:center; gap:5px; }
+  .score-val { font-family:'League Spartan',sans-serif; font-weight:700;
+               font-size:.74rem; min-width:18px; text-align:right; }
+  .mini-bar-bg { flex:1; height:5px; background:#e8e3f0; border-radius:4px; overflow:hidden; min-width:36px; }
+  .mini-bar-fill { height:100%; border-radius:4px; transition:width .35s ease, background .35s; }
+  .rank-arrow { font-size:.64rem; padding:2px 4px; border-radius:4px;
+                font-weight:600; letter-spacing:.01em; white-space:nowrap; }
+  .rank-up   { color:#388e3c; background:#e8f5e9; }
+  .rank-same { color:#9a8fa8; background:#f0eae8; }
+  .rank-down { color:#c62828; background:#fce4e4; }
+  .table-foot-note { padding:8px 10px 0; font-size:.62rem; color:#b0a9b5; }
+
+  /* ── Légende ─────────────────────────────────────────── */
+  .legend { display:flex; gap:28px; justify-content:center; margin-top:28px;
+            flex-wrap:wrap; align-items:center; }
+  .legend-item { display:flex; align-items:center; gap:8px; font-size:.72rem; color:#6b6772; }
+  .legend-bar { width:60px; height:8px; border-radius:5px; }
+  .source-note { margin-top:14px; font-size:.63rem; color:#b0a9b5;
+                 text-align:center; max-width:600px; line-height:1.6; }
+
+  /* ── Méthodologie ────────────────────────────────────── */
+  .section { width:100%; max-width:820px; margin-top:72px; }
+  .section h2 { font-family:'League Spartan',sans-serif; font-size:1.25rem; font-weight:800;
+                margin-bottom:18px; letter-spacing:-0.01em; }
+  .section h3 { font-family:'League Spartan',sans-serif; font-size:.95rem; font-weight:800;
+                margin:28px 0 10px; }
+  .section p { font-size:.85rem; line-height:1.75; color:#3a3546; margin-bottom:13px; }
+  .section p a, .refs a, .axe-body a { color:#E06030; text-decoration:none; border-bottom:1px solid #f0c8b4; }
+  .section ul { margin:0 0 13px 20px; }
+  .section li { font-size:.85rem; line-height:1.7; color:#3a3546; margin-bottom:6px; }
+  .axe-item { border:1px solid #e8e3f0; border-radius:12px; margin-bottom:10px;
+              background:#fffdf8; overflow:hidden; }
+  .axe-head { display:flex; align-items:center; gap:12px; padding:13px 18px; cursor:pointer;
+              user-select:none; }
+  .axe-head:hover { background:#f7f2ec; }
+  .axe-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .axe-title { font-family:'League Spartan',sans-serif; font-weight:800; font-size:.86rem; flex:1; }
+  .axe-kind { font-size:.62rem; padding:2px 9px; border-radius:12px; font-weight:600;
+              letter-spacing:.03em; }
+  .kind-data { background:#e5f2ef; color:#1d6f5c; }
+  .kind-crit { background:#f3ecfa; color:#6d3fa8; }
+  .axe-caret { color:#b0a9b5; font-size:.75rem; transition:transform .2s; }
+  .axe-item.open .axe-caret { transform:rotate(90deg); }
+  .axe-body { display:none; padding:2px 18px 16px 42px; }
+  .axe-item.open .axe-body { display:block; }
+  .axe-body p { font-size:.8rem; margin-bottom:10px; }
+  .axe-grid { display:grid; grid-template-columns:auto 1fr; gap:4px 14px;
+              font-size:.76rem; line-height:1.6; color:#3a3546; margin-bottom:10px; }
+  .axe-grid dt { font-weight:600; color:#12101E; white-space:nowrap; }
+  .axe-grid dd { margin:0; }
+  .bareme { display:flex; flex-direction:column; gap:3px; margin:8px 0 10px; }
+  .bareme-row { display:flex; gap:10px; align-items:baseline; font-size:.75rem; color:#3a3546; }
+  .bareme-pts { font-family:'League Spartan',sans-serif; font-weight:800; width:14px;
+                text-align:center; flex-shrink:0; }
+  .axe-limite { font-size:.74rem; color:#8a8492; font-style:italic; line-height:1.6; }
+  .refs { font-size:.76rem; line-height:1.85; color:#5a5566; }
+  .refs li { margin-bottom:7px; font-size:.76rem; }
+  .callout { background:#fff; border:1.5px solid #E06030; border-radius:14px;
+             padding:20px 24px; margin:24px 0; }
+  .callout p { margin-bottom:8px; }
+  .callout p:last-child { margin-bottom:0; }
+  .btn {
+    display:inline-block; margin:6px 10px 0 0; padding:9px 20px; border-radius:24px;
+    font-size:.78rem; font-weight:600; text-decoration:none; cursor:pointer;
+    font-family:'Inter',sans-serif; border:none;
+  }
+  .btn-primary { background:#12101E; color:#FFFAF1; }
+  .btn-outline { background:none; border:1.5px solid #12101E; color:#12101E; }
+  footer { margin-top:64px; font-size:.68rem; color:#b0a9b5; text-align:center; line-height:1.8; }
+  footer a { color:#8a8492; }
+
+  @media (max-width:900px) {
+    .tables-row { flex-direction:column; }
+    .table-col { width:100%; }
+    .sp-head { gap:18px; }
+    .axd-row { grid-template-columns:96px 1fr; }
+    .axd-row.two { grid-template-columns:96px 1fr 1fr; }
+    .sr-panel { left:-130px; }
+  }
+  @media (max-width:480px) {
+    body { padding:28px 12px 48px; }
+    h1 { font-size:1.3rem; }
+    tbody td { padding:6px 5px; font-size:.72rem; }
+    thead th { padding:6px 5px; }
+    .td-country { max-width:92px; }
+    .td-score { min-width:60px; }
+    .mini-bar-bg { min-width:22px; }
+    .td-value { padding-right:4px; }
+    #search { width:200px; }
+    #score-panel { padding:16px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>La roue des privilèges des États</h1>
+<span class="version-badge">Version 2.1 · brouillon ouvert · juillet 2026</span>
+<p class="subtitle">Un pays ne choisit pas sa géographie, sa langue, son passé colonial, ni la monnaie dans laquelle il s'endette. Cette roue rend visibles ces avantages hérités : plus un pays est proche du centre, plus il en cumule. Cliquez sur un pays pour le situer, ou comparez-en deux.</p>
+<nav class="nav-links">
+  <a href="#methodologie">Méthodologie</a>
+  <a href="#sources">Sources et références</a>
+  <a href="#contribuer">Contribuer</a>
+</nav>
+
+<div class="controls">
+  <input id="search" type="text" placeholder="Chercher un pays…" autocomplete="off">
+  <div id="search-results"><div class="sr-panel" id="sr-panel"></div></div>
+  <button class="chip" id="chip-compare">Mode comparaison</button>
+  <button class="chip" id="chip-weights">Pondérations</button>
+  <button class="chip chip-preset" data-a="COD" data-b="NOR">RD Congo vs Norvège</button>
+  <button class="chip chip-preset" data-a="FRA" data-b="SEN">France vs Sénégal</button>
+  <button class="chip chip-preset" data-a="USA" data-b="HTI">États-Unis vs Haïti</button>
+</div>
+
+<div class="wheel-wrap">
+  <svg id="wheel" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"
+       style="width:100%;height:auto;display:block;"></svg>
+</div>
+
+<div id="score-panel">
+  <div class="sp-head" id="sp-head"></div>
+  <div>
+    <button class="sp-detail-toggle" id="sp-detail-toggle">Voir le détail des 12 axes</button>
+    <button class="sp-detail-toggle" id="sp-share">Télécharger l'image</button>
+  </div>
+  <div id="sp-detail"></div>
+  <button class="sp-close" id="sp-close">Fermer</button>
+</div>
+
+<div id="weights-panel">
+  <div class="wp-head">
+    <span class="wp-title">Pondération des axes</span>
+    <button class="wp-reset" id="wp-reset">Réinitialiser</button>
+  </div>
+  <p class="wp-note">Par défaut, chaque axe compte pour un douzième du score, un choix de simplicité expliqué dans la méthodologie. Déplacez les curseurs pour tester votre propre vision de ce qui pèse le plus : les scores /36 et les classements se recalculent.</p>
+  <div class="wp-grid" id="wp-grid"></div>
+</div>
+
+<div class="tables-row">
+  <div class="table-col">
+    <div class="table-header">
+      <span class="table-title">Classement par PIB</span>
+      <span class="table-note">Banque mondiale 2024 · flèche = rang privilège vs rang PIB</span>
+    </div>
+    <div class="table-scroll" id="gdp-scroll">
+      <table>
+        <thead><tr><th class="td-rank">#</th><th>Pays</th><th class="right">PIB</th><th class="center">Priv.</th><th>Score /36</th></tr></thead>
+        <tbody id="gdp-body"></tbody>
+      </table>
+    </div>
+    <p class="table-foot-note">Rang privilège : <span class="rank-arrow rank-up">&#x2191;</span> plus privilégié que le PIB ne le suggère · <span class="rank-arrow rank-down">&#x2193;</span> moins privilégié</p>
+  </div>
+  <div class="table-col">
+    <div class="table-header">
+      <span class="table-title">Classement par IDH</span>
+      <span class="table-note">PNUD · flèche = rang privilège vs rang IDH</span>
+    </div>
+    <div class="table-scroll" id="hdi-scroll">
+      <table>
+        <thead><tr><th class="td-rank">#</th><th>Pays</th><th class="right">IDH</th><th class="center">Priv.</th><th>Score /36</th></tr></thead>
+        <tbody id="hdi-body"></tbody>
+      </table>
+    </div>
+    <p class="table-foot-note">Rang privilège : <span class="rank-arrow rank-up">&#x2191;</span> plus privilégié que l'IDH ne le suggère · <span class="rank-arrow rank-down">&#x2193;</span> moins privilégié</p>
+  </div>
+  <div class="table-col">
+    <div class="table-header">
+      <span class="table-title">Classement par score de privilège</span>
+      <span class="table-note">roue · 0 à 36 pts</span>
+    </div>
+    <div class="table-scroll" id="priv-scroll">
+      <table>
+        <thead><tr><th class="td-rank">#</th><th>Pays</th><th class="center">Score /36</th><th class="center">Rang PIB</th><th class="center">Rang IDH</th></tr></thead>
+        <tbody id="priv-body"></tbody>
+      </table>
+    </div>
+    <p class="table-foot-note">Rangs PIB et IDH au sein des 190 pays couverts</p>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-bar" style="background:linear-gradient(to right,#E06030,#FFFAF1);"></div>
+    Centre = très privilégié
+  </div>
+  <div class="legend-item">
+    <div class="legend-bar" style="background:linear-gradient(to right,#FFFAF1,#d4cfd8);"></div>
+    Bordure = peu privilégié
+  </div>
+</div>
+<p class="source-note">190 pays · 12 axes notés de 0 à 3 (3 = position la plus privilégiée) · 6 axes calculés depuis des données publiques, 6 axes notés selon des critères explicites · outil pédagogique non normatif · <a href="#methodologie" style="color:#9a8fa8">méthodologie détaillée ci-dessous</a></p>
+
+<!-- ══════════════ MÉTHODOLOGIE ══════════════ -->
+<section class="section" id="methodologie">
+  <h2>Méthodologie</h2>
+
+  <h3>D'où vient l'idée</h3>
+  <p>La roue des privilèges est un outil pédagogique utilisé en éducation populaire et en formation : elle représente, pour un individu, les dimensions sur lesquelles il hérite d'une position favorable ou défavorable sans l'avoir choisie (genre, couleur de peau, langue maternelle, validité, éducation). La version la plus diffusée est celle de Sylvia Duckworth (vers 2020), adaptée d'une roue du <a href="https://ccrweb.ca/">Conseil canadien pour les réfugiés</a>. Elle s'appuie sur les travaux fondateurs de l'intersectionnalité (Crenshaw, 1989) et de la matrice de domination (Collins, 1990).</p>
+  <p>Cet outil transpose la même question à l'échelle des États : un pays hérite lui aussi de conditions initiales qu'il n'a pas choisies et qui structurent sa trajectoire. À notre connaissance, cette transposition n'existait pas encore sous cette forme. Des indices voisins mesurent d'autres choses : le <a href="https://www.cgdev.org/cdi">Commitment to Development Index</a> évalue l'effort des politiques publiques des pays riches envers les pays pauvres, l'<a href="https://www.realinstitutoelcano.org/en/">Elcano Global Presence Index</a> mesure la projection extérieure des États, et la littérature des systèmes-mondes (Wallerstein, 1974 ; Babones, 2005) classe les pays entre centre et périphérie. La roue ne mesure ni l'effort ni la présence : elle rend visible la position héritée.</p>
+
+  <h3>Principes de construction</h3>
+  <ul>
+    <li><strong>12 axes, notés de 0 à 3.</strong> 3 correspond à la position la plus privilégiée, 0 à la moins privilégiée. Le score total va de 0 à 36.</li>
+    <li><strong>Des héritages, pas des mérites.</strong> Chaque axe capte un avantage structurel largement indépendant des choix des générations actuelles : on ne décide ni de sa géographie, ni de la langue léguée par l'histoire, ni du passé colonial, ni du statut international de sa monnaie.</li>
+    <li><strong>Deux familles d'axes.</strong> 6 axes sont calculés automatiquement à partir de bases de données publiques, avec des seuils explicites (badge « donnée »). 6 axes reposent sur des critères qualitatifs documentés, appliqués pays par pays (badge « critères »). Pour ces derniers, le classement d'un pays donné peut se discuter : c'est un des points sur lesquels les contributions sont bienvenues.</li>
+    <li><strong>Pas de pondération.</strong> Les 12 axes comptent chacun pour un douzième du score. C'est un choix de simplicité : rien ne prouve que la monnaie « pèse » autant que la langue. Une pondération argumentée est une piste d'amélioration ouverte.</li>
+    <li><strong>Un outil pédagogique.</strong> La roue sert à ouvrir une discussion sur les avantages hérités entre nations. Elle n'établit pas un palmarès scientifique : les scores donnent des ordres de grandeur, discutables et discutés.</li>
+  </ul>
+
+  <h3>Les 12 axes</h3>
+  <div id="axes-accordion"></div>
+
+  <h3>Ce que la roue ne dit pas</h3>
+  <ul>
+    <li><strong>Elle ne mesure pas le bien-être ni la réussite.</strong> Un score élevé signifie que le pays a hérité de conditions favorables, pas que ses habitants vivent bien, ni l'inverse.</li>
+    <li><strong>Elle agrège des réalités internes très inégales.</strong> Un pays « privilégié » compte des populations qui ne le sont pas du tout, et réciproquement. La roue parle de la position de l'État dans le système international, pas de celle de chaque habitant.</li>
+    <li><strong>Les seuils sont des conventions.</strong> Déplacer un seuil change des scores. Les seuils retenus sont publiés pour que chacun puisse les critiquer et proposer mieux.</li>
+    <li><strong>La couverture est de 190 pays sur les 193 membres de l'ONU.</strong> La Corée du Nord, l'Érythrée et Monaco sont exclus faute de données publiques suffisantes (PIB ou IDH manquants). Pour cinq pays absents de l'indice ND-GAIN (Andorre, Liechtenstein, Saint-Marin, Saint-Kitts-et-Nevis, Soudan du Sud) et pour les émissions cumulées de Saint-Marin, le score est attribué par analogie régionale documentée plutôt que calculé.</li>
+    <li><strong>Certains axes se recoupent partiellement.</strong> L'analyse de sensibilité (v2.1, <a href="https://github.com/ArtMassonneau/roue-privileges-etats/blob/main/analyse-sensibilite.md" target="_blank" rel="noopener">détail sur GitHub</a>) le confirme : plusieurs axes partagent une composante « richesse » (monnaie × normes : ρ = 0,85 ; représentation × poids de marché : ρ = 0,84), ce qui illustre le cumul des privilèges plus que ça ne l'invalide. Le classement global est robuste : retirer n'importe lequel des 12 axes laisse le classement quasi inchangé (corrélation de rang ≥ 0,986), et déplacer les seuils des axes calculés de ±20 % touche des scores individuels en zone médiane sans bouleverser le haut ni le bas du classement.</li>
+    <li><strong>Les millésimes varient selon les sources</strong> (2023 à 2026 selon les bases). Chaque valeur est datée dans le détail par pays.</li>
+  </ul>
+</section>
+
+<!-- ══════════════ SOURCES ══════════════ -->
+<section class="section" id="sources">
+  <h2>Sources et références</h2>
+
+  <h3>Données</h3>
+  <ul class="refs" id="refs-data"></ul>
+
+  <h3>Ancrages académiques</h3>
+  <ul class="refs">
+    <li>Crenshaw, K. (1989). « Demarginalizing the Intersection of Race and Sex ». <em>University of Chicago Legal Forum</em>. <a href="https://chicagounbound.uchicago.edu/uclf/vol1989/iss1/8/">Lien</a></li>
+    <li>Collins, P. H. (1990). <em>Black Feminist Thought</em>. Unwin Hyman. Concept de « matrice de domination ».</li>
+    <li>Wallerstein, I. (1974). <em>The Modern World-System</em>, vol. I. Academic Press.</li>
+    <li>de Swaan, A. (2001). <em>Words of the World: The Global Language System</em>. Polity Press.</li>
+    <li>Calvet, L.-J. (1999). <em>Pour une écologie des langues du monde</em>. Plon.</li>
+    <li>Acemoglu, D., Johnson, S. &amp; Robinson, J. (2001). « The Colonial Origins of Comparative Development ». <em>American Economic Review</em>, 91(5).</li>
+    <li>Eichengreen, B. (2011). <em>Exorbitant Privilege</em>. Oxford University Press.</li>
+    <li>Eichengreen, B. &amp; Hausmann, R. (1999). « Exchange Rates and Financial Fragility ». NBER WP 7418, concept de « péché originel ». <a href="https://www.nber.org/papers/w7418">Lien</a></li>
+    <li>Chang, H.-J. (2002). <em>Kicking Away the Ladder</em>. Anthem Press.</li>
+    <li>Bradford, A. (2020). <em>The Brussels Effect</em>. Oxford University Press.</li>
+    <li>Mau, S., Gülzau, F., Laube, L. &amp; Zaun, N. (2015). « The Global Mobility Divide ». <em>Journal of Ethnic and Migration Studies</em>, 41(8). <a href="https://www.tandfonline.com/doi/abs/10.1080/1369183X.2015.1005007">Lien</a></li>
+    <li>Hickel, J. (2020). « Quantifying national responsibility for climate breakdown ». <em>The Lancet Planetary Health</em>, 4(9). <a href="https://www.thelancet.com/journals/lanplh/article/PIIS2542-5196(20)30196-0/fulltext">Lien</a></li>
+    <li>Babones, S. (2005). « The Country-Level Income Structure of the World-Economy ». <em>Journal of World-Systems Research</em>, 11(1). <a href="https://jwsr.pitt.edu/ojs/jwsr/article/view/392">Lien</a></li>
+  </ul>
+</section>
+
+<!-- ══════════════ CONTRIBUER ══════════════ -->
+<section class="section" id="contribuer">
+  <h2>Contribuer</h2>
+  <div class="callout">
+    <p><strong>Cette roue est un brouillon ouvert.</strong> Les critères, les seuils et les scores pays par pays sont publiés pour être discutés. Si vous êtes étudiant·e, chercheur·se, ou en désaccord argumenté avec un score, votre contribution m'intéresse : contestation d'un score, proposition de pondération, meilleur indicateur pour un axe, extension aux pays manquants, analyse de sensibilité.</p>
+    <p>
+      <a class="btn btn-primary" href="https://www.linkedin.com/in/arthurmassonneau" target="_blank" rel="noopener">M'écrire sur LinkedIn</a>
+      <a class="btn btn-outline" href="https://github.com/ArtMassonneau/roue-privileges-etats" target="_blank" rel="noopener">Contribuer sur GitHub</a>
+      <button class="btn btn-outline" id="csv-btn">Télécharger les données (CSV)</button>
+    </p>
+  </div>
+</section>
+
+<footer>
+  Arthur Massonneau · 2026 · outil pédagogique en construction<br>
+  Les scores critériés reflètent une lecture qui peut se discuter · les données citées appartiennent à leurs producteurs respectifs
+</footer>
+
+<script>
+// ═══════════════ DONNÉES ═══════════════
+// Ordre des axes : LAN GEO RES VUL HIST MON REP NOR SP POIDS MOB ECO
+const DATA = /*__DATA__*/{"USA":{"name":"États-Unis","scores":[3,3,3,3,3,3,3,3,3,3,3,3],"raw":{"gdp_bn":29298.0,"gdp_year":2024,"gdp_share":26.24,"hdi":0.938,"hdi_year":2023,"rent_bn":375.0,"ndgain_vul":0.312,"cumco2_percap":1279,"henley":179,"sp_rank":1}},"GBR":{"name":"Royaume-Uni","scores":[3,3,2,3,3,3,3,3,3,2,3,3],"raw":{"gdp_bn":3695.5,"gdp_year":2024,"gdp_share":3.31,"hdi":0.946,"hdi_year":2023,"rent_bn":21.7,"ndgain_vul":0.288,"cumco2_percap":1156,"henley":183,"sp_rank":4}},"FRA":{"name":"France","scores":[2,3,0,3,3,3,3,3,3,2,3,2],"raw":{"gdp_bn":3160.4,"gdp_year":2024,"gdp_share":2.83,"hdi":0.92,"hdi_year":2023,"rent_bn":1.0,"ndgain_vul":0.304,"cumco2_percap":584,"henley":185,"sp_rank":6}},"DEU":{"name":"Allemagne","scores":[1,3,1,3,2,3,2,3,3,3,3,3],"raw":{"gdp_bn":4685.6,"gdp_year":2024,"gdp_share":4.2,"hdi":0.959,"hdi_year":2023,"rent_bn":3.6,"ndgain_vul":0.301,"cumco2_percap":1139,"henley":185,"sp_rank":5}},"ITA":{"name":"Italie","scores":[1,3,0,3,2,3,2,2,3,2,3,2],"raw":{"gdp_bn":2383.4,"gdp_year":2024,"gdp_share":2.13,"hdi":0.915,"hdi_year":2023,"rent_bn":2.7,"ndgain_vul":0.342,"cumco2_percap":441,"henley":185,"sp_rank":9}},"ESP":{"name":"Espagne","scores":[2,3,0,3,3,3,2,2,2,2,3,2],"raw":{"gdp_bn":1725.7,"gdp_year":2024,"gdp_share":1.55,"hdi":0.918,"hdi_year":2023,"rent_bn":2.0,"ndgain_vul":0.305,"cumco2_percap":321,"henley":185,"sp_rank":12}},"PRT":{"name":"Portugal","scores":[2,3,0,3,2,3,1,2,2,1,3,2],"raw":{"gdp_bn":313.7,"gdp_year":2024,"gdp_share":0.28,"hdi":0.89,"hdi_year":2023,"rent_bn":0.9,"ndgain_vul":0.318,"cumco2_percap":259,"henley":184,"sp_rank":27}},"NLD":{"name":"Pays-Bas","scores":[1,3,1,2,2,3,2,2,2,2,3,3],"raw":{"gdp_bn":1213.9,"gdp_year":2024,"gdp_share":1.09,"hdi":0.955,"hdi_year":2023,"rent_bn":4.1,"ndgain_vul":0.354,"cumco2_percap":681,"henley":185,"sp_rank":15}},"BEL":{"name":"Belgique","scores":[2,3,0,3,2,3,1,2,2,1,3,3],"raw":{"gdp_bn":671.0,"gdp_year":2024,"gdp_share":0.6,"hdi":0.951,"hdi_year":2023,"rent_bn":0.3,"ndgain_vul":0.335,"cumco2_percap":1088,"henley":185,"sp_rank":22}},"CHE":{"name":"Suisse","scores":[2,1,0,3,1,3,1,3,3,1,3,2],"raw":{"gdp_bn":969.9,"gdp_year":2024,"gdp_share":0.87,"hdi":0.97,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.251,"cumco2_percap":351,"henley":185,"sp_rank":7}},"AUT":{"name":"Autriche","scores":[1,1,0,3,2,3,1,2,2,1,3,3],"raw":{"gdp_bn":534.8,"gdp_year":2024,"gdp_share":0.48,"hdi":0.93,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.295,"cumco2_percap":626,"henley":184,"sp_rank":24}},"SWE":{"name":"Suède","scores":[1,3,1,3,1,2,1,2,2,1,3,2],"raw":{"gdp_bn":604.8,"gdp_year":2024,"gdp_share":0.54,"hdi":0.959,"hdi_year":2023,"rent_bn":7.3,"ndgain_vul":0.317,"cumco2_percap":486,"henley":186,"sp_rank":13}},"NOR":{"name":"Norvège","scores":[1,3,2,3,1,2,1,2,2,1,3,2],"raw":{"gdp_bn":500.9,"gdp_year":2024,"gdp_share":0.45,"hdi":0.97,"hdi_year":2023,"rent_bn":50.3,"ndgain_vul":0.256,"cumco2_percap":500,"henley":185,"sp_rank":19}},"DNK":{"name":"Danemark","scores":[1,3,0,3,2,2,1,2,2,1,3,3],"raw":{"gdp_bn":424.5,"gdp_year":2024,"gdp_share":0.38,"hdi":0.962,"hdi_year":2023,"rent_bn":1.4,"ndgain_vul":0.347,"cumco2_percap":703,"henley":185,"sp_rank":18}},"FIN":{"name":"Finlande","scores":[1,2,0,3,1,3,1,2,2,1,3,2],"raw":{"gdp_bn":298.7,"gdp_year":2024,"gdp_share":0.27,"hdi":0.948,"hdi_year":2023,"rent_bn":1.3,"ndgain_vul":0.28,"cumco2_percap":592,"henley":185,"sp_rank":23}},"IRL":{"name":"Irlande","scores":[3,3,0,3,1,3,1,2,2,1,3,2],"raw":{"gdp_bn":609.2,"gdp_year":2024,"gdp_share":0.55,"hdi":0.949,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.316,"cumco2_percap":439,"henley":185,"sp_rank":28}},"GRC":{"name":"Grèce","scores":[0,3,0,3,1,3,1,1,1,1,3,2],"raw":{"gdp_bn":256.2,"gdp_year":2024,"gdp_share":0.23,"hdi":0.908,"hdi_year":2023,"rent_bn":0.2,"ndgain_vul":0.337,"cumco2_percap":413,"henley":184,"sp_rank":33}},"CZE":{"name":"Tchéquie","scores":[0,1,0,3,1,2,1,2,1,1,3,3],"raw":{"gdp_bn":347.1,"gdp_year":2024,"gdp_share":0.31,"hdi":0.915,"hdi_year":2023,"rent_bn":1.4,"ndgain_vul":0.264,"cumco2_percap":1131,"henley":182,"sp_rank":44}},"HUN":{"name":"Hongrie","scores":[0,1,0,2,2,1,1,1,1,1,3,2],"raw":{"gdp_bn":222.8,"gdp_year":2024,"gdp_share":0.2,"hdi":0.87,"hdi_year":2023,"rent_bn":0.9,"ndgain_vul":0.353,"cumco2_percap":542,"henley":183,"sp_rank":48}},"POL":{"name":"Pologne","scores":[0,2,1,3,1,2,1,2,1,1,3,3],"raw":{"gdp_bn":917.8,"gdp_year":2024,"gdp_share":0.82,"hdi":0.906,"hdi_year":2023,"rent_bn":9.5,"ndgain_vul":0.306,"cumco2_percap":794,"henley":183,"sp_rank":31}},"ROU":{"name":"Roumanie","scores":[0,2,1,2,1,1,1,1,1,1,3,2],"raw":{"gdp_bn":382.6,"gdp_year":2024,"gdp_share":0.34,"hdi":0.845,"hdi_year":2023,"rent_bn":4.4,"ndgain_vul":0.412,"cumco2_percap":465,"henley":177,"sp_rank":53}},"UKR":{"name":"Ukraine","scores":[0,2,1,2,0,0,1,1,1,1,2,3],"raw":{"gdp_bn":190.8,"gdp_year":2024,"gdp_share":0.17,"hdi":0.779,"hdi_year":2023,"rent_bn":14.3,"ndgain_vul":0.365,"cumco2_percap":825,"henley":142,"sp_rank":47}},"RUS":{"name":"Russie","scores":[1,2,3,3,2,1,3,2,2,2,1,3],"raw":{"gdp_bn":2186.5,"gdp_year":2024,"gdp_share":1.96,"hdi":0.832,"hdi_year":2023,"rent_bn":404.7,"ndgain_vul":0.324,"cumco2_percap":855,"henley":113,"sp_rank":14}},"CAN":{"name":"Canada","scores":[3,3,3,3,2,2,2,2,3,2,3,3],"raw":{"gdp_bn":2270.1,"gdp_year":2024,"gdp_share":2.03,"hdi":0.939,"hdi_year":2023,"rent_bn":112.3,"ndgain_vul":0.282,"cumco2_percap":864,"henley":182,"sp_rank":8}},"AUS":{"name":"Australie","scores":[3,3,3,3,2,2,2,2,2,2,3,3],"raw":{"gdp_bn":1757.0,"gdp_year":2024,"gdp_share":1.57,"hdi":0.958,"hdi_year":2023,"rent_bn":234.7,"ndgain_vul":0.316,"cumco2_percap":737,"henley":182,"sp_rank":16}},"NZL":{"name":"Nouvelle-Zélande","scores":[3,2,1,3,2,2,1,2,2,1,3,2],"raw":{"gdp_bn":261.5,"gdp_year":2024,"gdp_share":0.23,"hdi":0.938,"hdi_year":2023,"rent_bn":3.9,"ndgain_vul":0.304,"cumco2_percap":380,"henley":182,"sp_rank":26}},"MEX":{"name":"Mexique","scores":[2,3,2,2,1,1,2,1,1,2,2,1],"raw":{"gdp_bn":1830.5,"gdp_year":2024,"gdp_share":1.64,"hdi":0.789,"hdi_year":2023,"rent_bn":66.7,"ndgain_vul":0.387,"cumco2_percap":168,"henley":156,"sp_rank":42}},"JPN":{"name":"Japon","scores":[1,3,0,2,2,3,2,3,3,3,3,2],"raw":{"gdp_bn":4190.0,"gdp_year":2024,"gdp_share":3.75,"hdi":0.925,"hdi_year":2023,"rent_bn":2.0,"ndgain_vul":0.369,"cumco2_percap":562,"henley":187,"sp_rank":3}},"KOR":{"name":"Corée du Sud","scores":[0,2,0,2,0,2,2,2,2,2,3,2],"raw":{"gdp_bn":1875.4,"gdp_year":2024,"gdp_share":1.68,"hdi":0.937,"hdi_year":2023,"rent_bn":0.9,"ndgain_vul":0.357,"cumco2_percap":400,"henley":187,"sp_rank":11}},"CHN":{"name":"Chine","scores":[1,3,3,2,1,2,3,2,3,3,1,1],"raw":{"gdp_bn":18729.7,"gdp_year":2024,"gdp_share":16.77,"hdi":0.797,"hdi_year":2023,"rent_bn":319.8,"ndgain_vul":0.382,"cumco2_percap":202,"henley":82,"sp_rank":2}},"IND":{"name":"Inde","scores":[2,2,3,1,0,2,2,1,1,2,0,0],"raw":{"gdp_bn":3760.8,"gdp_year":2024,"gdp_share":3.37,"hdi":0.685,"hdi_year":2023,"rent_bn":118.8,"ndgain_vul":0.485,"cumco2_percap":46,"henley":56,"sp_rank":32}},"PAK":{"name":"Pakistan","scores":[2,2,1,0,0,1,1,1,0,1,0,0],"raw":{"gdp_bn":371.7,"gdp_year":2024,"gdp_share":0.33,"hdi":0.544,"hdi_year":2023,"rent_bn":5.3,"ndgain_vul":0.515,"cumco2_percap":23,"henley":31,"sp_rank":84}},"BGD":{"name":"Bangladesh","scores":[0,2,0,0,0,1,1,1,0,1,0,0],"raw":{"gdp_bn":450.1,"gdp_year":2024,"gdp_share":0.4,"hdi":0.685,"hdi_year":2023,"rent_bn":2.7,"ndgain_vul":0.568,"cumco2_percap":12,"henley":36,"sp_rank":101}},"LKA":{"name":"Sri Lanka","scores":[0,3,0,1,0,0,0,1,0,0,0,0],"raw":{"gdp_bn":99.6,"gdp_year":2024,"gdp_share":0.09,"hdi":0.776,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.475,"cumco2_percap":26,"henley":39,"sp_rank":100}},"NPL":{"name":"Népal","scores":[0,0,0,1,1,1,0,1,0,0,0,0],"raw":{"gdp_bn":43.3,"gdp_year":2024,"gdp_share":0.04,"hdi":0.622,"hdi_year":2023,"rent_bn":0.2,"ndgain_vul":0.49,"cumco2_percap":8,"henley":35,"sp_rank":99}},"IDN":{"name":"Indonésie","scores":[1,3,2,1,0,1,2,1,1,2,1,1],"raw":{"gdp_bn":1396.3,"gdp_year":2024,"gdp_share":1.25,"hdi":0.728,"hdi_year":2023,"rent_bn":72.0,"ndgain_vul":0.43,"cumco2_percap":61,"henley":70,"sp_rank":45}},"MYS":{"name":"Malaisie","scores":[1,3,2,2,0,2,1,1,1,1,3,1],"raw":{"gdp_bn":422.2,"gdp_year":2024,"gdp_share":0.38,"hdi":0.819,"hdi_year":2023,"rent_bn":29.2,"ndgain_vul":0.367,"cumco2_percap":198,"henley":183,"sp_rank":35}},"SGP":{"name":"Singapour","scores":[3,3,0,2,0,2,1,2,2,1,3,2],"raw":{"gdp_bn":572.9,"gdp_year":2024,"gdp_share":0.51,"hdi":0.946,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.389,"cumco2_percap":372,"henley":192,"sp_rank":21}},"THA":{"name":"Thaïlande","scores":[0,3,1,1,1,2,1,1,1,1,1,1],"raw":{"gdp_bn":529.4,"gdp_year":2024,"gdp_share":0.47,"hdi":0.798,"hdi_year":2023,"rent_bn":9.6,"ndgain_vul":0.435,"cumco2_percap":116,"henley":76,"sp_rank":38}},"VNM":{"name":"Vietnam","scores":[0,3,1,1,0,1,1,1,1,1,0,0],"raw":{"gdp_bn":476.3,"gdp_year":2024,"gdp_share":0.43,"hdi":0.766,"hdi_year":2023,"rent_bn":12.1,"ndgain_vul":0.468,"cumco2_percap":56,"henley":48,"sp_rank":52}},"KHM":{"name":"Cambodge","scores":[0,2,0,1,0,0,0,1,0,0,0,0],"raw":{"gdp_bn":46.4,"gdp_year":2024,"gdp_share":0.04,"hdi":0.606,"hdi_year":2023,"rent_bn":0.4,"ndgain_vul":0.481,"cumco2_percap":14,"henley":47,"sp_rank":115}},"LAO":{"name":"Laos","scores":[0,0,0,1,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":16.5,"gdp_year":2024,"gdp_share":0.01,"hdi":0.617,"hdi_year":2023,"rent_bn":0.9,"ndgain_vul":0.486,"cumco2_percap":31,"henley":45,"sp_rank":148}},"MMR":{"name":"Myanmar","scores":[0,2,1,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":74.1,"gdp_year":2024,"gdp_share":0.07,"hdi":0.609,"hdi_year":2023,"rent_bn":6.4,"ndgain_vul":0.514,"cumco2_percap":13,"henley":42,"sp_rank":154}},"MNG":{"name":"Mongolie","scores":[0,0,1,2,1,1,0,1,0,0,1,1],"raw":{"gdp_bn":23.8,"gdp_year":2024,"gdp_share":0.02,"hdi":0.747,"hdi_year":2023,"rent_bn":7.9,"ndgain_vul":0.365,"cumco2_percap":244,"henley":64,"sp_rank":105}},"KAZ":{"name":"Kazakhstan","scores":[1,0,2,3,0,1,0,1,0,1,1,3],"raw":{"gdp_bn":291.5,"gdp_year":2024,"gdp_share":0.26,"hdi":0.837,"hdi_year":2023,"rent_bn":78.2,"ndgain_vul":0.316,"cumco2_percap":725,"henley":78,"sp_rank":82}},"AFG":{"name":"Afghanistan","scores":[0,0,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":17.8,"gdp_year":2024,"gdp_share":0.02,"hdi":0.496,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.588,"cumco2_percap":6,"henley":23,"sp_rank":151}},"PNG":{"name":"Papouasie-N.-Guinée","scores":[3,2,1,0,0,1,0,0,0,0,1,0],"raw":{"gdp_bn":30.8,"gdp_year":2024,"gdp_share":0.03,"hdi":0.576,"hdi_year":2023,"rent_bn":8.4,"ndgain_vul":0.55,"cumco2_percap":20,"henley":84,"sp_rank":156}},"FJI":{"name":"Fidji","scores":[3,2,0,1,0,1,0,1,0,0,1,0],"raw":{"gdp_bn":6.0,"gdp_year":2024,"gdp_share":0.01,"hdi":0.731,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.453,"cumco2_percap":58,"henley":87,"sp_rank":133}},"SAU":{"name":"Arabie saoudite","scores":[2,2,3,2,1,2,2,1,2,2,1,2],"raw":{"gdp_bn":1254.1,"gdp_year":2024,"gdp_share":1.12,"hdi":0.9,"hdi_year":2023,"rent_bn":320.6,"ndgain_vul":0.408,"cumco2_percap":539,"henley":87,"sp_rank":17}},"ARE":{"name":"Émirats arabes unis","scores":[2,3,2,2,1,2,1,2,3,1,3,2],"raw":{"gdp_bn":552.3,"gdp_year":2024,"gdp_share":0.49,"hdi":0.94,"hdi_year":2023,"rent_bn":97.4,"ndgain_vul":0.383,"cumco2_percap":530,"henley":187,"sp_rank":10}},"QAT":{"name":"Qatar","scores":[2,2,2,2,1,2,1,1,2,1,1,3],"raw":{"gdp_bn":216.3,"gdp_year":2024,"gdp_share":0.19,"hdi":0.886,"hdi_year":2023,"rent_bn":59.0,"ndgain_vul":0.351,"cumco2_percap":907,"henley":111,"sp_rank":20}},"ISR":{"name":"Israël","scores":[0,2,0,3,1,2,1,2,1,1,2,2],"raw":{"gdp_bn":542.3,"gdp_year":2024,"gdp_share":0.49,"hdi":0.919,"hdi_year":2023,"rent_bn":2.4,"ndgain_vul":0.289,"cumco2_percap":261,"henley":166,"sp_rank":39}},"IRN":{"name":"Iran","scores":[1,2,3,2,1,0,1,0,1,1,0,1],"raw":{"gdp_bn":475.3,"gdp_year":2024,"gdp_share":0.43,"hdi":0.799,"hdi_year":2023,"rent_bn":144.7,"ndgain_vul":0.376,"cumco2_percap":238,"henley":38,"sp_rank":58}},"IRQ":{"name":"Irak","scores":[2,1,3,1,0,0,1,0,0,1,0,1],"raw":{"gdp_bn":279.6,"gdp_year":2024,"gdp_share":0.25,"hdi":0.695,"hdi_year":2023,"rent_bn":121.5,"ndgain_vul":0.436,"cumco2_percap":116,"henley":29,"sp_rank":98}},"JOR":{"name":"Jordanie","scores":[2,1,0,2,0,1,0,1,0,0,0,1],"raw":{"gdp_bn":58.6,"gdp_year":2024,"gdp_share":0.05,"hdi":0.754,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.366,"cumco2_percap":69,"henley":49,"sp_rank":62}},"LBN":{"name":"Liban","scores":[2,2,0,2,0,0,0,0,0,0,0,1],"raw":{"gdp_bn":26.0,"gdp_year":2024,"gdp_share":0.02,"hdi":0.752,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.399,"cumco2_percap":137,"henley":43,"sp_rank":89}},"TUR":{"name":"Turquie","scores":[1,3,1,2,2,0,2,1,2,2,1,1],"raw":{"gdp_bn":1359.1,"gdp_year":2024,"gdp_share":1.22,"hdi":0.853,"hdi_year":2023,"rent_bn":11.2,"ndgain_vul":0.375,"cumco2_percap":151,"henley":113,"sp_rank":25}},"EGY":{"name":"Égypte","scores":[2,3,1,2,0,0,1,1,1,1,0,1],"raw":{"gdp_bn":389.1,"gdp_year":2024,"gdp_share":0.35,"hdi":0.754,"hdi_year":2023,"rent_bn":20.0,"ndgain_vul":0.411,"cumco2_percap":64,"henley":49,"sp_rank":40}},"MAR":{"name":"Maroc","scores":[2,3,0,2,0,1,1,1,1,0,1,0],"raw":{"gdp_bn":160.6,"gdp_year":2024,"gdp_share":0.14,"hdi":0.71,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.368,"cumco2_percap":53,"henley":71,"sp_rank":50}},"DZA":{"name":"Algérie","scores":[2,3,2,2,0,1,1,1,0,1,0,1],"raw":{"gdp_bn":269.3,"gdp_year":2024,"gdp_share":0.24,"hdi":0.763,"hdi_year":2023,"rent_bn":60.8,"ndgain_vul":0.367,"cumco2_percap":117,"henley":55,"sp_rank":74}},"TUN":{"name":"Tunisie","scores":[2,3,0,2,0,1,0,1,0,0,1,1],"raw":{"gdp_bn":51.4,"gdp_year":2024,"gdp_share":0.05,"hdi":0.746,"hdi_year":2023,"rent_bn":1.2,"ndgain_vul":0.379,"cumco2_percap":87,"henley":66,"sp_rank":75}},"LBY":{"name":"Libye","scores":[2,3,2,2,0,0,0,0,0,0,0,2],"raw":{"gdp_bn":48.5,"gdp_year":2024,"gdp_share":0.04,"hdi":0.721,"hdi_year":2023,"rent_bn":29.6,"ndgain_vul":0.416,"cumco2_percap":337,"henley":39,"sp_rank":127}},"SDN":{"name":"Soudan","scores":[2,2,1,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":49.7,"gdp_year":2024,"gdp_share":0.04,"hdi":0.511,"hdi_year":2023,"rent_bn":6.3,"ndgain_vul":0.612,"cumco2_percap":10,"henley":41,"sp_rank":137}},"NGA":{"name":"Nigeria","scores":[2,2,2,1,0,0,1,0,0,1,0,0],"raw":{"gdp_bn":252.3,"gdp_year":2024,"gdp_share":0.23,"hdi":0.56,"hdi_year":2023,"rent_bn":21.6,"ndgain_vul":0.481,"cumco2_percap":20,"henley":44,"sp_rank":71}},"ZAF":{"name":"Afrique du Sud","scores":[2,2,2,2,1,2,2,1,1,1,1,2],"raw":{"gdp_bn":401.1,"gdp_year":2024,"gdp_share":0.36,"hdi":0.741,"hdi_year":2023,"rent_bn":29.4,"ndgain_vul":0.395,"cumco2_percap":357,"henley":100,"sp_rank":43}},"KEN":{"name":"Kenya","scores":[2,2,0,0,0,1,1,1,0,0,1,0],"raw":{"gdp_bn":120.4,"gdp_year":2024,"gdp_share":0.11,"hdi":0.628,"hdi_year":2023,"rent_bn":1.5,"ndgain_vul":0.5,"cumco2_percap":10,"henley":69,"sp_rank":88}},"ETH":{"name":"Éthiopie","scores":[0,0,1,0,1,0,1,0,0,0,0,0],"raw":{"gdp_bn":149.7,"gdp_year":2024,"gdp_share":0.13,"hdi":0.497,"hdi_year":2023,"rent_bn":8.8,"ndgain_vul":0.522,"cumco2_percap":3,"henley":42,"sp_rank":110}},"TZA":{"name":"Tanzanie","scores":[1,2,1,0,0,1,0,1,0,0,1,0],"raw":{"gdp_bn":79.2,"gdp_year":2024,"gdp_share":0.07,"hdi":0.555,"hdi_year":2023,"rent_bn":5.3,"ndgain_vul":0.516,"cumco2_percap":5,"henley":68,"sp_rank":94}},"UGA":{"name":"Ouganda","scores":[2,0,1,0,0,1,0,0,0,0,1,0],"raw":{"gdp_bn":53.9,"gdp_year":2024,"gdp_share":0.05,"hdi":0.582,"hdi_year":2023,"rent_bn":4.0,"ndgain_vul":0.536,"cumco2_percap":3,"henley":65,"sp_rank":118}},"GHA":{"name":"Ghana","scores":[2,2,1,1,0,0,0,1,0,0,1,0],"raw":{"gdp_bn":83.3,"gdp_year":2024,"gdp_share":0.07,"hdi":0.628,"hdi_year":2023,"rent_bn":11.1,"ndgain_vul":0.448,"cumco2_percap":12,"henley":67,"sp_rank":95}},"CIV":{"name":"Côte d'Ivoire","scores":[2,2,1,1,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":87.1,"gdp_year":2024,"gdp_share":0.08,"hdi":0.582,"hdi_year":2023,"rent_bn":4.1,"ndgain_vul":0.489,"cumco2_percap":13,"henley":55,"sp_rank":104}},"SEN":{"name":"Sénégal","scores":[2,2,0,0,0,0,0,1,0,0,0,0],"raw":{"gdp_bn":32.2,"gdp_year":2024,"gdp_share":0.03,"hdi":0.53,"hdi_year":2023,"rent_bn":1.4,"ndgain_vul":0.535,"cumco2_percap":16,"henley":56,"sp_rank":106}},"MLI":{"name":"Mali","scores":[2,0,1,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":26.8,"gdp_year":2024,"gdp_share":0.02,"hdi":0.419,"hdi_year":2023,"rent_bn":4.9,"ndgain_vul":0.576,"cumco2_percap":4,"henley":53,"sp_rank":123}},"NER":{"name":"Niger","scores":[2,0,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":19.7,"gdp_year":2024,"gdp_share":0.02,"hdi":0.419,"hdi_year":2023,"rent_bn":1.3,"ndgain_vul":0.633,"cumco2_percap":2,"henley":54,"sp_rank":141}},"TCD":{"name":"Tchad","scores":[2,0,1,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":19.9,"gdp_year":2024,"gdp_share":0.02,"hdi":0.416,"hdi_year":2023,"rent_bn":4.2,"ndgain_vul":0.64,"cumco2_percap":3,"henley":51,"sp_rank":165}},"CMR":{"name":"Cameroun","scores":[2,2,0,1,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":53.3,"gdp_year":2024,"gdp_share":0.05,"hdi":0.588,"hdi_year":2023,"rent_bn":2.9,"ndgain_vul":0.486,"cumco2_percap":11,"henley":47,"sp_rank":108}},"COD":{"name":"RD Congo","scores":[2,1,2,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":75.7,"gdp_year":2024,"gdp_share":0.07,"hdi":0.522,"hdi_year":2023,"rent_bn":29.4,"ndgain_vul":0.561,"cumco2_percap":2,"henley":43,"sp_rank":113}},"AGO":{"name":"Angola","scores":[2,2,2,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":103.1,"gdp_year":2024,"gdp_share":0.09,"hdi":0.616,"hdi_year":2023,"rent_bn":30.9,"ndgain_vul":0.506,"cumco2_percap":20,"henley":48,"sp_rank":116}},"MOZ":{"name":"Mozambique","scores":[2,2,1,1,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":22.8,"gdp_year":2024,"gdp_share":0.02,"hdi":0.493,"hdi_year":2023,"rent_bn":3.4,"ndgain_vul":0.493,"cumco2_percap":6,"henley":59,"sp_rank":140}},"ZMB":{"name":"Zambie","scores":[2,0,1,1,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":25.3,"gdp_year":2024,"gdp_share":0.02,"hdi":0.595,"hdi_year":2023,"rent_bn":8.9,"ndgain_vul":0.485,"cumco2_percap":14,"henley":64,"sp_rank":114}},"ZWE":{"name":"Zimbabwe","scores":[2,0,0,1,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":41.5,"gdp_year":2024,"gdp_share":0.04,"hdi":0.598,"hdi_year":2023,"rent_bn":2.7,"ndgain_vul":0.498,"cumco2_percap":50,"henley":61,"sp_rank":117}},"RWA":{"name":"Rwanda","scores":[2,0,0,0,0,1,0,1,0,0,1,0],"raw":{"gdp_bn":15.1,"gdp_year":2024,"gdp_share":0.01,"hdi":0.578,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.567,"cumco2_percap":3,"henley":66,"sp_rank":122}},"BDI":{"name":"Burundi","scores":[2,0,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":3.0,"gdp_year":2024,"gdp_share":0.0,"hdi":0.439,"hdi_year":2023,"rent_bn":0.4,"ndgain_vul":0.553,"cumco2_percap":1,"henley":48,"sp_rank":163}},"MUS":{"name":"Maurice","scores":[2,3,0,2,0,2,0,1,0,0,2,1],"raw":{"gdp_bn":14.9,"gdp_year":2024,"gdp_share":0.01,"hdi":0.806,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.412,"cumco2_percap":107,"henley":147,"sp_rank":96}},"BRA":{"name":"Brésil","scores":[2,3,3,2,1,2,2,2,2,2,2,1],"raw":{"gdp_bn":2185.8,"gdp_year":2024,"gdp_share":1.96,"hdi":0.786,"hdi_year":2023,"rent_bn":173.6,"ndgain_vul":0.369,"cumco2_percap":86,"henley":168,"sp_rank":29}},"ARG":{"name":"Argentine","scores":[2,2,1,2,1,0,2,1,1,1,2,1],"raw":{"gdp_bn":638.4,"gdp_year":2024,"gdp_share":0.57,"hdi":0.865,"hdi_year":2023,"rent_bn":16.9,"ndgain_vul":0.383,"cumco2_percap":200,"henley":168,"sp_rank":37}},"CHL":{"name":"Chili","scores":[2,2,2,3,1,2,1,1,1,1,3,1],"raw":{"gdp_bn":329.3,"gdp_year":2024,"gdp_share":0.29,"hdi":0.878,"hdi_year":2023,"rent_bn":55.7,"ndgain_vul":0.332,"cumco2_percap":168,"henley":174,"sp_rank":56}},"PER":{"name":"Pérou","scores":[2,2,2,2,1,1,1,1,0,1,2,1],"raw":{"gdp_bn":291.8,"gdp_year":2024,"gdp_share":0.26,"hdi":0.794,"hdi_year":2023,"rent_bn":37.1,"ndgain_vul":0.409,"cumco2_percap":63,"henley":141,"sp_rank":77}},"COL":{"name":"Colombie","scores":[2,3,2,2,1,1,1,1,0,1,2,1],"raw":{"gdp_bn":420.5,"gdp_year":2024,"gdp_share":0.38,"hdi":0.788,"hdi_year":2023,"rent_bn":22.4,"ndgain_vul":0.405,"cumco2_percap":72,"henley":130,"sp_rank":66}},"VEN":{"name":"Venezuela","scores":[2,3,3,2,1,0,1,0,0,0,1,2],"raw":{"gdp_bn":120.6,"gdp_year":2024,"gdp_share":0.11,"hdi":0.709,"hdi_year":2023,"rent_bn":null,"ndgain_vul":0.373,"cumco2_percap":278,"henley":116,"sp_rank":97}},"BOL":{"name":"Bolivie","scores":[2,0,1,1,1,1,0,1,0,0,1,0],"raw":{"gdp_bn":54.9,"gdp_year":2024,"gdp_share":0.05,"hdi":0.733,"hdi_year":2023,"rent_bn":5.2,"ndgain_vul":0.451,"cumco2_percap":52,"henley":77,"sp_rank":103}},"ECU":{"name":"Équateur","scores":[2,2,1,1,1,0,1,1,0,0,1,1],"raw":{"gdp_bn":123.8,"gdp_year":2024,"gdp_share":0.11,"hdi":0.777,"hdi_year":2023,"rent_bn":8.3,"ndgain_vul":0.461,"cumco2_percap":77,"henley":93,"sp_rank":93}},"URY":{"name":"Uruguay","scores":[2,3,0,2,1,2,1,1,0,0,2,1],"raw":{"gdp_bn":82.3,"gdp_year":2024,"gdp_share":0.07,"hdi":0.862,"hdi_year":2023,"rent_bn":1.6,"ndgain_vul":0.375,"cumco2_percap":141,"henley":155,"sp_rank":64}},"PAN":{"name":"Panama","scores":[2,3,1,2,1,0,1,1,0,0,2,1],"raw":{"gdp_bn":86.5,"gdp_year":2024,"gdp_share":0.08,"hdi":0.839,"hdi_year":2023,"rent_bn":3.2,"ndgain_vul":0.406,"cumco2_percap":80,"henley":147,"sp_rank":65}},"GTM":{"name":"Guatemala","scores":[2,2,0,1,1,1,0,1,0,0,2,0],"raw":{"gdp_bn":113.2,"gdp_year":2024,"gdp_share":0.1,"hdi":0.662,"hdi_year":2023,"rent_bn":2.2,"ndgain_vul":0.434,"cumco2_percap":28,"henley":132,"sp_rank":126}},"DOM":{"name":"Rép. dominicaine","scores":[2,2,0,1,1,1,0,1,0,0,1,1],"raw":{"gdp_bn":124.3,"gdp_year":2024,"gdp_share":0.11,"hdi":0.776,"hdi_year":2023,"rent_bn":2.6,"ndgain_vul":0.433,"cumco2_percap":76,"henley":71,"sp_rank":80}},"JAM":{"name":"Jamaïque","scores":[3,2,0,1,0,1,0,1,0,0,1,1],"raw":{"gdp_bn":22.0,"gdp_year":2024,"gdp_share":0.02,"hdi":0.72,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.422,"cumco2_percap":171,"henley":85,"sp_rank":87}},"CUB":{"name":"Cuba","scores":[2,2,0,1,1,0,0,0,0,0,0,1],"raw":{"gdp_bn":107.4,"gdp_year":2020,"gdp_share":0.1,"hdi":0.762,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.441,"cumco2_percap":165,"henley":56,"sp_rank":83}},"HTI":{"name":"Haïti","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":24.3,"gdp_year":2024,"gdp_share":0.02,"hdi":0.554,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.509,"cumco2_percap":8,"henley":49,"sp_rank":170}},"PHL":{"name":"Philippines","scores":[2,2,1,1,0,1,1,1,1,1,1,0],"raw":{"gdp_bn":461.7,"gdp_year":2024,"gdp_share":0.41,"hdi":0.72,"hdi_year":2023,"rent_bn":9.1,"ndgain_vul":0.444,"cumco2_percap":34,"henley":65,"sp_rank":54}},"ALB":{"name":"Albanie","scores":[0,2,0,2,1,1,0,1,0,0,2,1],"raw":{"gdp_bn":27.0,"gdp_year":2024,"gdp_share":0.02,"hdi":0.81,"hdi_year":2023,"rent_bn":0.4,"ndgain_vul":0.38,"cumco2_percap":130,"henley":121,"sp_rank":102}},"AND":{"name":"Andorre","scores":[0,1,0,3,1,0,0,1,0,0,2,1],"raw":{"gdp_bn":4.0,"gdp_year":2024,"gdp_share":0.0,"hdi":0.913,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":null,"cumco2_percap":203,"henley":169,"sp_rank":135}},"ATG":{"name":"Antigua-et-Barbuda","scores":[3,2,0,1,0,0,0,0,0,0,2,2],"raw":{"gdp_bn":2.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.851,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.468,"cumco2_percap":287,"henley":154,"sp_rank":176}},"ARM":{"name":"Arménie","scores":[0,0,0,2,0,1,0,1,0,0,1,1],"raw":{"gdp_bn":26.0,"gdp_year":2024,"gdp_share":0.02,"hdi":0.811,"hdi_year":2023,"rent_bn":1.8,"ndgain_vul":0.357,"cumco2_percap":134,"henley":64,"sp_rank":90}},"AZE":{"name":"Azerbaïdjan","scores":[0,1,2,2,0,1,0,1,0,0,1,2],"raw":{"gdp_bn":74.4,"gdp_year":2024,"gdp_share":0.07,"hdi":0.789,"hdi_year":2023,"rent_bn":22.3,"ndgain_vul":0.404,"cumco2_percap":258,"henley":67,"sp_rank":85}},"BHS":{"name":"Bahamas","scores":[3,2,0,1,0,0,0,1,0,0,2,2],"raw":{"gdp_bn":15.8,"gdp_year":2024,"gdp_share":0.01,"hdi":0.82,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.458,"cumco2_percap":450,"henley":158,"sp_rank":86}},"BHR":{"name":"Bahreïn","scores":[2,2,1,1,1,2,0,1,1,0,1,3],"raw":{"gdp_bn":47.2,"gdp_year":2024,"gdp_share":0.04,"hdi":0.899,"hdi_year":2023,"rent_bn":7.9,"ndgain_vul":0.436,"cumco2_percap":700,"henley":87,"sp_rank":49}},"BRB":{"name":"Barbade","scores":[3,2,0,2,0,0,0,1,0,0,2,1],"raw":{"gdp_bn":7.6,"gdp_year":2024,"gdp_share":0.01,"hdi":0.811,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.371,"cumco2_percap":226,"henley":163,"sp_rank":145}},"BLR":{"name":"Biélorussie","scores":[1,1,0,3,0,0,0,1,0,0,1,2],"raw":{"gdp_bn":78.6,"gdp_year":2024,"gdp_share":0.07,"hdi":0.824,"hdi_year":2023,"rent_bn":1.5,"ndgain_vul":0.323,"cumco2_percap":568,"henley":77,"sp_rank":81}},"BLZ":{"name":"Belize","scores":[3,2,0,1,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":3.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.721,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.467,"cumco2_percap":54,"henley":100,"sp_rank":168}},"BEN":{"name":"Bénin","scores":[2,2,0,0,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":21.5,"gdp_year":2024,"gdp_share":0.02,"hdi":0.515,"hdi_year":2023,"rent_bn":0.5,"ndgain_vul":0.571,"cumco2_percap":9,"henley":65,"sp_rank":162}},"BTN":{"name":"Bhoutan","scores":[0,0,0,0,1,0,0,0,0,0,0,0],"raw":{"gdp_bn":3.3,"gdp_year":2024,"gdp_share":0.0,"hdi":0.698,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.515,"cumco2_percap":38,"henley":47,"sp_rank":119}},"BIH":{"name":"Bosnie-Herzégovine","scores":[0,1,0,3,1,0,0,1,0,0,2,2],"raw":{"gdp_bn":29.7,"gdp_year":2024,"gdp_share":0.03,"hdi":0.804,"hdi_year":2023,"rent_bn":0.2,"ndgain_vul":0.347,"cumco2_percap":330,"henley":121,"sp_rank":109}},"BWA":{"name":"Botswana","scores":[2,0,0,1,1,2,0,1,0,0,1,1],"raw":{"gdp_bn":19.3,"gdp_year":2024,"gdp_share":0.02,"hdi":0.731,"hdi_year":2023,"rent_bn":0.2,"ndgain_vul":0.432,"cumco2_percap":73,"henley":81,"sp_rank":147}},"BRN":{"name":"Brunei","scores":[1,2,1,2,1,2,0,1,0,0,2,3],"raw":{"gdp_bn":15.3,"gdp_year":2024,"gdp_share":0.01,"hdi":0.837,"hdi_year":2023,"rent_bn":3.7,"ndgain_vul":0.404,"cumco2_percap":924,"henley":163,"sp_rank":120}},"BGR":{"name":"Bulgarie","scores":[0,2,0,2,1,3,1,2,0,0,3,3],"raw":{"gdp_bn":113.3,"gdp_year":2024,"gdp_share":0.1,"hdi":0.845,"hdi_year":2023,"rent_bn":1.0,"ndgain_vul":0.354,"cumco2_percap":619,"henley":177,"sp_rank":68}},"BFA":{"name":"Burkina Faso","scores":[2,0,1,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":23.1,"gdp_year":2024,"gdp_share":0.02,"hdi":0.459,"hdi_year":2023,"rent_bn":4.7,"ndgain_vul":0.521,"cumco2_percap":4,"henley":56,"sp_rank":143}},"CPV":{"name":"Cap-Vert","scores":[2,2,0,1,0,0,0,1,0,0,1,0],"raw":{"gdp_bn":2.7,"gdp_year":2024,"gdp_share":0.0,"hdi":0.668,"hdi_year":2023,"rent_bn":0.5,"ndgain_vul":0.42,"cumco2_percap":32,"henley":63,"sp_rank":157}},"CAF":{"name":"Centrafrique","scores":[2,0,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":2.8,"gdp_year":2024,"gdp_share":0.0,"hdi":0.414,"hdi_year":2023,"rent_bn":0.3,"ndgain_vul":0.579,"cumco2_percap":2,"henley":48,"sp_rank":112}},"COM":{"name":"Comores","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":1.6,"gdp_year":2024,"gdp_share":0.0,"hdi":0.603,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.541,"cumco2_percap":9,"henley":50,"sp_rank":173}},"COG":{"name":"Congo-Brazzaville","scores":[2,2,1,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":15.7,"gdp_year":2024,"gdp_share":0.01,"hdi":0.649,"hdi_year":2023,"rent_bn":5.9,"ndgain_vul":0.522,"cumco2_percap":30,"henley":46,"sp_rank":139}},"CRI":{"name":"Costa Rica","scores":[2,2,0,2,1,1,1,1,0,0,2,0],"raw":{"gdp_bn":96.7,"gdp_year":2024,"gdp_share":0.09,"hdi":0.833,"hdi_year":2023,"rent_bn":0.7,"ndgain_vul":0.376,"cumco2_percap":56,"henley":148,"sp_rank":73}},"HRV":{"name":"Croatie","scores":[0,2,0,2,1,3,1,2,1,0,3,2],"raw":{"gdp_bn":93.0,"gdp_year":2024,"gdp_share":0.08,"hdi":0.889,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.38,"cumco2_percap":306,"henley":181,"sp_rank":46}},"CYP":{"name":"Chypre","scores":[1,2,0,2,0,3,1,2,1,0,3,1],"raw":{"gdp_bn":37.6,"gdp_year":2024,"gdp_share":0.03,"hdi":0.913,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.359,"cumco2_percap":237,"henley":174,"sp_rank":60}},"DJI":{"name":"Djibouti","scores":[2,3,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":4.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.513,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.502,"cumco2_percap":18,"henley":45,"sp_rank":180}},"DMA":{"name":"Dominique","scores":[3,2,0,1,0,0,0,0,0,0,2,1],"raw":{"gdp_bn":0.7,"gdp_year":2024,"gdp_share":0.0,"hdi":0.761,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.439,"cumco2_percap":83,"henley":145,"sp_rank":136}},"SLV":{"name":"Salvador","scores":[2,2,0,1,1,0,0,1,0,0,2,0],"raw":{"gdp_bn":34.9,"gdp_year":2024,"gdp_share":0.03,"hdi":0.678,"hdi_year":2023,"rent_bn":0.2,"ndgain_vul":0.425,"cumco2_percap":42,"henley":131,"sp_rank":76}},"GNQ":{"name":"Guinée équatoriale","scores":[2,2,1,2,0,0,0,0,0,0,0,1],"raw":{"gdp_bn":13.3,"gdp_year":2024,"gdp_share":0.01,"hdi":0.674,"hdi_year":2023,"rent_bn":3.1,"ndgain_vul":0.41,"cumco2_percap":86,"henley":52,"sp_rank":149}},"EST":{"name":"Estonie","scores":[1,2,0,3,0,3,1,2,0,0,3,3],"raw":{"gdp_bn":43.1,"gdp_year":2024,"gdp_share":0.04,"hdi":0.905,"hdi_year":2023,"rent_bn":0.7,"ndgain_vul":0.334,"cumco2_percap":1216,"henley":181,"sp_rank":67}},"SWZ":{"name":"Eswatini","scores":[2,0,0,1,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":4.9,"gdp_year":2024,"gdp_share":0.0,"hdi":0.695,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.448,"cumco2_percap":36,"henley":71,"sp_rank":159}},"GAB":{"name":"Gabon","scores":[2,2,1,1,0,0,0,0,0,0,0,1],"raw":{"gdp_bn":20.9,"gdp_year":2024,"gdp_share":0.02,"hdi":0.733,"hdi_year":2023,"rent_bn":3.9,"ndgain_vul":0.436,"cumco2_percap":121,"henley":55,"sp_rank":169}},"GMB":{"name":"Gambie","scores":[2,2,0,0,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":2.4,"gdp_year":2024,"gdp_share":0.0,"hdi":0.524,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.524,"cumco2_percap":6,"henley":68,"sp_rank":152}},"GEO":{"name":"Géorgie","scores":[0,2,0,2,0,1,0,1,0,0,2,1],"raw":{"gdp_bn":34.2,"gdp_year":2024,"gdp_share":0.03,"hdi":0.844,"hdi_year":2023,"rent_bn":0.5,"ndgain_vul":0.394,"cumco2_percap":174,"henley":120,"sp_rank":61}},"GRD":{"name":"Grenade","scores":[3,2,0,2,0,0,0,0,0,0,2,1],"raw":{"gdp_bn":1.4,"gdp_year":2024,"gdp_share":0.0,"hdi":0.791,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.383,"cumco2_percap":82,"henley":147,"sp_rank":171}},"GIN":{"name":"Guinée","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":25.0,"gdp_year":2024,"gdp_share":0.02,"hdi":0.5,"hdi_year":2023,"rent_bn":1.1,"ndgain_vul":0.529,"cumco2_percap":7,"henley":52,"sp_rank":144}},"GNB":{"name":"Guinée-Bissau","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":2.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.514,"hdi_year":2023,"rent_bn":0.2,"ndgain_vul":0.613,"cumco2_percap":4,"henley":50,"sp_rank":167}},"GUY":{"name":"Guyana","scores":[3,2,1,1,0,1,0,0,0,0,1,1],"raw":{"gdp_bn":24.7,"gdp_year":2024,"gdp_share":0.02,"hdi":0.776,"hdi_year":2023,"rent_bn":8.3,"ndgain_vul":0.43,"cumco2_percap":141,"henley":88,"sp_rank":160}},"HND":{"name":"Honduras","scores":[2,2,0,1,1,1,0,1,0,0,2,0],"raw":{"gdp_bn":37.0,"gdp_year":2024,"gdp_share":0.03,"hdi":0.645,"hdi_year":2023,"rent_bn":0.5,"ndgain_vul":0.445,"cumco2_percap":29,"henley":129,"sp_rank":131}},"ISL":{"name":"Islande","scores":[1,2,0,3,1,1,1,2,1,0,3,2],"raw":{"gdp_bn":33.2,"gdp_year":2024,"gdp_share":0.03,"hdi":0.972,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.322,"cumco2_percap":444,"henley":179,"sp_rank":34}},"KIR":{"name":"Kiribati","scores":[2,2,0,0,0,0,0,0,0,0,2,0],"raw":{"gdp_bn":0.3,"gdp_year":2024,"gdp_share":0.0,"hdi":0.644,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.557,"cumco2_percap":17,"henley":122,"sp_rank":193}},"KWT":{"name":"Koweït","scores":[2,2,2,2,1,2,0,1,1,0,1,3],"raw":{"gdp_bn":160.9,"gdp_year":2024,"gdp_share":0.14,"hdi":0.852,"hdi_year":2023,"rent_bn":47.1,"ndgain_vul":0.362,"cumco2_percap":791,"henley":96,"sp_rank":41}},"KGZ":{"name":"Kirghizistan","scores":[1,0,0,3,0,1,0,1,0,0,0,1],"raw":{"gdp_bn":18.2,"gdp_year":2024,"gdp_share":0.02,"hdi":0.72,"hdi_year":2023,"rent_bn":2.1,"ndgain_vul":0.311,"cumco2_percap":122,"henley":59,"sp_rank":142}},"LVA":{"name":"Lettonie","scores":[1,2,0,2,0,3,1,2,0,0,3,2],"raw":{"gdp_bn":44.0,"gdp_year":2024,"gdp_share":0.04,"hdi":0.889,"hdi_year":2023,"rent_bn":0.5,"ndgain_vul":0.36,"cumco2_percap":526,"henley":182,"sp_rank":70}},"LSO":{"name":"Lesotho","scores":[2,0,0,1,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":2.4,"gdp_year":2024,"gdp_share":0.0,"hdi":0.55,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.472,"cumco2_percap":31,"henley":73,"sp_rank":185}},"LBR":{"name":"Liberia","scores":[2,2,0,0,1,0,0,0,0,0,0,0],"raw":{"gdp_bn":4.8,"gdp_year":2024,"gdp_share":0.0,"hdi":0.51,"hdi_year":2023,"rent_bn":1.0,"ndgain_vul":0.538,"cumco2_percap":9,"henley":49,"sp_rank":134}},"LIE":{"name":"Liechtenstein","scores":[1,1,0,3,1,3,0,2,0,0,3,1],"raw":{"gdp_bn":8.9,"gdp_year":2024,"gdp_share":0.01,"hdi":0.938,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":null,"cumco2_percap":246,"henley":180,"sp_rank":91}},"LTU":{"name":"Lituanie","scores":[1,2,0,2,0,3,1,2,0,0,3,2],"raw":{"gdp_bn":85.5,"gdp_year":2024,"gdp_share":0.08,"hdi":0.895,"hdi_year":2023,"rent_bn":0.2,"ndgain_vul":0.36,"cumco2_percap":557,"henley":180,"sp_rank":79}},"LUX":{"name":"Luxembourg","scores":[2,1,0,3,1,3,1,2,2,0,3,3],"raw":{"gdp_bn":93.3,"gdp_year":2024,"gdp_share":0.08,"hdi":0.922,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.311,"cumco2_percap":1157,"henley":185,"sp_rank":30}},"MDG":{"name":"Madagascar","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":17.6,"gdp_year":2024,"gdp_share":0.02,"hdi":0.487,"hdi_year":2023,"rent_bn":1.0,"ndgain_vul":0.558,"cumco2_percap":4,"henley":55,"sp_rank":107}},"MWI":{"name":"Malawi","scores":[2,0,0,0,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":11.3,"gdp_year":2024,"gdp_share":0.01,"hdi":0.517,"hdi_year":2023,"rent_bn":0.5,"ndgain_vul":0.549,"cumco2_percap":3,"henley":70,"sp_rank":155}},"MDV":{"name":"Maldives","scores":[0,2,0,0,1,0,0,0,1,0,1,1],"raw":{"gdp_bn":7.1,"gdp_year":2024,"gdp_share":0.01,"hdi":0.766,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.55,"cumco2_percap":64,"henley":92,"sp_rank":59}},"MLT":{"name":"Malte","scores":[3,3,0,3,0,3,1,2,0,0,3,1],"raw":{"gdp_bn":25.0,"gdp_year":2024,"gdp_share":0.02,"hdi":0.924,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.32,"cumco2_percap":196,"henley":184,"sp_rank":69}},"MHL":{"name":"Îles Marshall","scores":[2,2,0,0,0,0,0,0,0,0,2,1],"raw":{"gdp_bn":0.3,"gdp_year":2024,"gdp_share":0.0,"hdi":0.733,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.59,"cumco2_percap":107,"henley":127,"sp_rank":181}},"MRT":{"name":"Mauritanie","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":10.9,"gdp_year":2024,"gdp_share":0.01,"hdi":0.563,"hdi_year":2023,"rent_bn":1.2,"ndgain_vul":0.578,"cumco2_percap":19,"henley":55,"sp_rank":158}},"FSM":{"name":"Micronésie","scores":[2,2,0,0,0,0,0,0,0,0,2,0],"raw":{"gdp_bn":0.5,"gdp_year":2024,"gdp_share":0.0,"hdi":0.615,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.621,"cumco2_percap":43,"henley":120,"sp_rank":188}},"MDA":{"name":"Moldavie","scores":[0,0,0,2,0,1,0,1,0,0,1,2],"raw":{"gdp_bn":18.2,"gdp_year":2024,"gdp_share":0.02,"hdi":0.785,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.394,"cumco2_percap":565,"henley":119,"sp_rank":128}},"MNE":{"name":"Monténégro","scores":[0,2,0,2,1,0,0,1,0,0,2,1],"raw":{"gdp_bn":8.3,"gdp_year":2024,"gdp_share":0.01,"hdi":0.862,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.363,"cumco2_percap":196,"henley":126,"sp_rank":111}},"NAM":{"name":"Namibie","scores":[2,2,0,1,0,0,0,1,0,0,1,0],"raw":{"gdp_bn":13.6,"gdp_year":2024,"gdp_share":0.01,"hdi":0.665,"hdi_year":2023,"rent_bn":0.5,"ndgain_vul":0.454,"cumco2_percap":29,"henley":74,"sp_rank":124}},"NRU":{"name":"Nauru","scores":[2,2,0,0,0,0,0,0,0,0,1,2],"raw":{"gdp_bn":0.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.703,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.509,"cumco2_percap":425,"henley":86,"sp_rank":192}},"NIC":{"name":"Nicaragua","scores":[2,2,0,1,1,1,0,0,0,0,2,0],"raw":{"gdp_bn":19.7,"gdp_year":2024,"gdp_share":0.02,"hdi":0.706,"hdi_year":2023,"rent_bn":0.8,"ndgain_vul":0.446,"cumco2_percap":29,"henley":125,"sp_rank":153}},"MKD":{"name":"Macédoine du Nord","scores":[0,0,0,2,1,1,0,1,0,0,2,2],"raw":{"gdp_bn":17.0,"gdp_year":2024,"gdp_share":0.02,"hdi":0.815,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.372,"cumco2_percap":295,"henley":126,"sp_rank":130}},"OMN":{"name":"Oman","scores":[2,3,2,1,2,2,0,1,1,0,1,2],"raw":{"gdp_bn":107.1,"gdp_year":2024,"gdp_share":0.1,"hdi":0.858,"hdi_year":2023,"rent_bn":31.3,"ndgain_vul":0.42,"cumco2_percap":317,"henley":84,"sp_rank":51}},"PLW":{"name":"Palaos","scores":[2,2,0,0,0,0,0,0,0,0,2,3],"raw":{"gdp_bn":0.3,"gdp_year":2024,"gdp_share":0.0,"hdi":0.786,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.513,"cumco2_percap":644,"henley":120,"sp_rank":184}},"PRY":{"name":"Paraguay","scores":[2,1,0,2,1,1,0,1,0,0,2,0],"raw":{"gdp_bn":44.7,"gdp_year":2024,"gdp_share":0.04,"hdi":0.756,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.372,"cumco2_percap":30,"henley":145,"sp_rank":78}},"KNA":{"name":"Saint-Kitts-et-Nevis","scores":[3,2,0,1,0,0,0,0,0,0,2,1],"raw":{"gdp_bn":1.1,"gdp_year":2024,"gdp_share":0.0,"hdi":0.84,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":null,"cumco2_percap":172,"henley":157,"sp_rank":189}},"LCA":{"name":"Sainte-Lucie","scores":[3,2,0,2,0,0,0,0,0,0,2,1],"raw":{"gdp_bn":2.6,"gdp_year":2024,"gdp_share":0.0,"hdi":0.748,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.375,"cumco2_percap":92,"henley":144,"sp_rank":178}},"VCT":{"name":"Saint-Vincent","scores":[3,2,0,1,0,0,0,0,0,0,2,1],"raw":{"gdp_bn":1.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.798,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.431,"cumco2_percap":79,"henley":157,"sp_rank":186}},"WSM":{"name":"Samoa","scores":[2,2,0,0,0,0,0,0,0,0,2,0],"raw":{"gdp_bn":1.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.708,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.513,"cumco2_percap":36,"henley":129,"sp_rank":174}},"SMR":{"name":"Saint-Marin","scores":[0,1,0,3,1,0,0,1,0,0,2,2],"raw":{"gdp_bn":2.0,"gdp_year":2023,"gdp_share":0.0,"hdi":0.915,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":null,"cumco2_percap":null,"henley":166,"sp_rank":132}},"STP":{"name":"Sao Tomé-et-Principe","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":0.8,"gdp_year":2024,"gdp_share":0.0,"hdi":0.637,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.542,"cumco2_percap":17,"henley":58,"sp_rank":175}},"SRB":{"name":"Serbie","scores":[0,1,0,1,1,1,0,1,0,0,2,2],"raw":{"gdp_bn":90.1,"gdp_year":2024,"gdp_share":0.08,"hdi":0.833,"hdi_year":2023,"rent_bn":1.6,"ndgain_vul":0.422,"cumco2_percap":444,"henley":135,"sp_rank":72}},"SYC":{"name":"Seychelles","scores":[2,2,0,1,0,1,0,1,0,0,2,1],"raw":{"gdp_bn":2.2,"gdp_year":2024,"gdp_share":0.0,"hdi":0.848,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.444,"cumco2_percap":133,"henley":154,"sp_rank":150}},"SLE":{"name":"Sierra Leone","scores":[2,2,0,0,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":7.0,"gdp_year":2024,"gdp_share":0.01,"hdi":0.467,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.597,"cumco2_percap":5,"henley":62,"sp_rank":172}},"SVK":{"name":"Slovaquie","scores":[0,1,0,2,1,3,1,2,1,0,3,3],"raw":{"gdp_bn":140.9,"gdp_year":2024,"gdp_share":0.13,"hdi":0.88,"hdi_year":2023,"rent_bn":0.3,"ndgain_vul":0.36,"cumco2_percap":743,"henley":182,"sp_rank":55}},"SVN":{"name":"Slovénie","scores":[0,2,0,3,1,3,1,2,1,0,3,2],"raw":{"gdp_bn":73.0,"gdp_year":2024,"gdp_share":0.07,"hdi":0.931,"hdi_year":2023,"rent_bn":0.1,"ndgain_vul":0.314,"cumco2_percap":428,"henley":182,"sp_rank":57}},"SLB":{"name":"Îles Salomon","scores":[2,2,0,0,0,0,0,0,0,0,2,0],"raw":{"gdp_bn":1.6,"gdp_year":2024,"gdp_share":0.0,"hdi":0.584,"hdi_year":2023,"rent_bn":0.3,"ndgain_vul":0.629,"cumco2_percap":14,"henley":132,"sp_rank":166}},"SOM":{"name":"Somalie","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":12.0,"gdp_year":2024,"gdp_share":0.01,"hdi":0.404,"hdi_year":2023,"rent_bn":1.3,"ndgain_vul":0.611,"cumco2_percap":2,"henley":32,"sp_rank":177}},"SSD":{"name":"Soudan du Sud","scores":[2,0,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":12.0,"gdp_year":2015,"gdp_share":0.01,"hdi":0.388,"hdi_year":2023,"rent_bn":1.6,"ndgain_vul":null,"cumco2_percap":4,"henley":41,"sp_rank":146}},"SUR":{"name":"Suriname","scores":[1,2,0,2,0,0,0,0,0,0,1,1],"raw":{"gdp_bn":4.4,"gdp_year":2024,"gdp_share":0.0,"hdi":0.722,"hdi_year":2023,"rent_bn":0.4,"ndgain_vul":0.404,"cumco2_percap":203,"henley":75,"sp_rank":182}},"SYR":{"name":"Syrie","scores":[2,2,0,1,0,0,0,0,0,0,0,1],"raw":{"gdp_bn":23.7,"gdp_year":2022,"gdp_share":0.02,"hdi":0.564,"hdi_year":2023,"rent_bn":1.5,"ndgain_vul":0.486,"cumco2_percap":83,"henley":26,"sp_rank":125}},"TJK":{"name":"Tadjikistan","scores":[0,0,0,2,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":14.4,"gdp_year":2024,"gdp_share":0.01,"hdi":0.691,"hdi_year":2023,"rent_bn":1.3,"ndgain_vul":0.356,"cumco2_percap":49,"henley":53,"sp_rank":129}},"TLS":{"name":"Timor-Leste","scores":[2,2,0,0,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":1.9,"gdp_year":2024,"gdp_share":0.0,"hdi":0.634,"hdi_year":2023,"rent_bn":0.6,"ndgain_vul":0.538,"cumco2_percap":9,"henley":92,"sp_rank":183}},"TGO":{"name":"Togo","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":10.6,"gdp_year":2024,"gdp_share":0.01,"hdi":0.571,"hdi_year":2023,"rent_bn":0.8,"ndgain_vul":0.503,"cumco2_percap":9,"henley":57,"sp_rank":164}},"TON":{"name":"Tonga","scores":[2,2,0,0,1,0,0,0,0,0,2,0],"raw":{"gdp_bn":0.6,"gdp_year":2024,"gdp_share":0.0,"hdi":0.769,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.607,"cumco2_percap":47,"henley":127,"sp_rank":187}},"TTO":{"name":"Trinité-et-Tobago","scores":[3,2,0,2,0,1,0,1,0,0,2,3],"raw":{"gdp_bn":25.6,"gdp_year":2024,"gdp_share":0.02,"hdi":0.807,"hdi_year":2023,"rent_bn":2.0,"ndgain_vul":0.371,"cumco2_percap":1250,"henley":145,"sp_rank":161}},"TKM":{"name":"Turkménistan","scores":[0,1,1,2,0,0,0,0,0,0,0,2],"raw":{"gdp_bn":44.2,"gdp_year":2024,"gdp_share":0.04,"hdi":0.764,"hdi_year":2023,"rent_bn":6.0,"ndgain_vul":0.372,"cumco2_percap":366,"henley":45,"sp_rank":138}},"TUV":{"name":"Tuvalu","scores":[2,2,0,0,0,0,0,0,0,0,2,0],"raw":{"gdp_bn":0.1,"gdp_year":2023,"gdp_share":0.0,"hdi":0.689,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.576,"cumco2_percap":31,"henley":125,"sp_rank":190}},"UZB":{"name":"Ouzbékistan","scores":[0,0,2,2,0,1,0,1,0,0,0,1],"raw":{"gdp_bn":121.4,"gdp_year":2024,"gdp_share":0.11,"hdi":0.74,"hdi_year":2023,"rent_bn":24.8,"ndgain_vul":0.359,"cumco2_percap":186,"henley":59,"sp_rank":92}},"VUT":{"name":"Vanuatu","scores":[2,2,0,0,0,0,0,0,0,0,1,0],"raw":{"gdp_bn":1.3,"gdp_year":2024,"gdp_share":0.0,"hdi":0.621,"hdi_year":2023,"rent_bn":0.0,"ndgain_vul":0.563,"cumco2_percap":17,"henley":87,"sp_rank":191}},"YEM":{"name":"Yémen","scores":[2,2,0,0,0,0,0,0,0,0,0,0],"raw":{"gdp_bn":21.6,"gdp_year":2018,"gdp_share":0.02,"hdi":0.47,"hdi_year":2023,"rent_bn":1.1,"ndgain_vul":0.534,"cumco2_percap":17,"henley":31,"sp_rank":121}}};
+const META = /*__META__*/{"version": "v2.1", "date": "2026-07-03", "n_pays": 190};
+
+// ═══════════════ AXES ═══════════════
+const SECTORS = [
+  { key:'LAN',  label:'LANGUE', sub:"d'hégémonie mondiale", kind:'crit',
+    indicateur:"Statut de la langue officielle dans le système mondial des langues (de Swaan, 2001 ; Calvet, 1999)",
+    rings:[['Anglais'],['Langue mondiale','(fr es ar pt)'],['Grande langue','régionale'],['Sans portée','internationale']],
+    bareme:["Anglais langue officielle et dominante","Langue supercentrale transnationale (français, espagnol, arabe, portugais) ou anglais co-officiel répandu","Grande langue concentrée (chinois, russe, allemand, hindi, swahili, malais) ou anglais quasi général en seconde langue","Langue nationale sans portée internationale"],
+    limite:"Le statut officiel ne dit pas tout des pratiques réelles. Les pays plurilingues sont classés sur leur langue la mieux positionnée.",
+    source:{txt:"de Swaan (2001), Calvet (1999)", url:null} },
+  { key:'GEO',  label:'GÉOGRAPHIE', sub:'accès maritime et position', kind:'crit',
+    indicateur:"Accès à la mer et position par rapport aux grandes routes commerciales",
+    rings:[['Routes clés'],['Accès','maritime réel'],['Littoral marginal','ou enclavé intégré'],['Enclavé','périphérique']],
+    bareme:["Long littoral sur les routes maritimes principales, position tempérée","Accès maritime réel, hors des routes principales","Littoral très court, ou pays enclavé au sein d'un marché intégré (Suisse, Autriche)","Enclavé et éloigné des grands marchés (liste des pays en développement sans littoral de l'ONU)"],
+    limite:"L'axe mélange accès physique et position relative ; un indicateur composite publié (distance aux marchés, trafic portuaire) serait plus robuste.",
+    source:{txt:"Liste ONU des pays en développement sans littoral (UN-OHRLLS)", url:"https://www.un.org/ohrlls/content/list-lldcs"} },
+  { key:'RES',  label:'RESSOURCES', sub:'dotation naturelle', kind:'data',
+    indicateur:"Rente annuelle des ressources naturelles en valeur absolue : rente en % du PIB (Banque mondiale) multipliée par le PIB",
+    rings:[['Majeure'],['Significative'],['Modeste'],['Très faible']],
+    bareme:["100 milliards de dollars par an ou plus","20 à 100 milliards","3 à 20 milliards","Moins de 3 milliards"],
+    limite:"L'axe mesure la dotation héritée, pas la capacité à en capter la valeur : la RD Congo est bien dotée ici alors que la valeur ajoutée de ses minerais est captée ailleurs (cette capture relève des axes normes et poids de marché). La rente Banque mondiale couvre énergie, minerais et forêt, pas les terres agricoles, ce qui sous-estime des pays comme la France. Le Venezuela, qui ne publie plus ses données, est classé manuellement sur ses réserves prouvées.",
+    source:{txt:"Banque mondiale, Total natural resources rents (NY.GDP.TOTL.RT.ZS), dernière année disponible", url:"https://data.worldbank.org/indicator/NY.GDP.TOTL.RT.ZS"} },
+  { key:'VUL',  label:'VULNÉRABILITÉ', sub:'au dérèglement climatique', kind:'data',
+    indicateur:"Score de vulnérabilité de l'indice ND-GAIN (université de Notre Dame), dernière année publiée",
+    rings:[['Épargné'],['Exposition','modérée'],['Exposition','forte'],['Très','vulnérable']],
+    bareme:["Vulnérabilité ND-GAIN inférieure à 0,35","0,35 à 0,42","0,42 à 0,50","0,50 et plus"],
+    limite:"La vulnérabilité ND-GAIN inclut une part de capacité d'adaptation, elle-même liée à la richesse : l'axe n'est pas totalement indépendant des autres.",
+    source:{txt:"ND-GAIN Country Index 2026, composante vulnérabilité", url:"https://gain.nd.edu/our-work/country-index/"} },
+  { key:'HIST', label:'HISTOIRE', sub:'coloniale', kind:'crit',
+    indicateur:"Position dans l'histoire coloniale moderne : métropole, bénéficiaire, épargné ou colonisé",
+    rings:[['Métropole'],['Puissance secondaire','ou settler'],["Ni l'un","ni l'autre"],['Colonisé','intensivement']],
+    bareme:["Métropole coloniale majeure et durable (accumulation massive)","Puissance coloniale secondaire, empire régional, ou État issu d'une colonisation de peuplement qui en a hérité les bénéfices (Canada, Australie)","Ni métropole ni colonisé durablement, ou indépendance ancienne avec institutions continues","Colonisé intensivement, décolonisation tardive (après 1945)"],
+    limite:"Quatre cases pour cinq siècles d'histoire : les cas hybrides (Pologne, Corée, Ukraine, colonisations internes) sont mal captés. La base ICOW Colonial History permettrait un codage plus fin.",
+    source:{txt:"Acemoglu, Johnson &amp; Robinson (2001) ; base ICOW Colonial History", url:"https://www.paulhensel.org/icowcol.html"} },
+  { key:'MON',  label:'MONNAIE', sub:'de réserve et dette', kind:'crit',
+    indicateur:"Statut de la monnaie dans les réserves mondiales (FMI COFER) et capacité à s'endetter dans sa propre monnaie",
+    rings:[['Réserve'],['Stable,','dette locale'],['Volatile'],['Dollarisé, CFA','ou défauts']],
+    bareme:["Émetteur d'une monnaie de réserve (dollar, euro, yen, livre, franc suisse)","Monnaie stable, État endetté principalement dans sa propre monnaie (yuan inclus)","Monnaie volatile, part significative de la dette en devises étrangères","Dollarisé de fait, monnaie arrimée sans politique monétaire propre (franc CFA), ou défauts et crises monétaires récurrents"],
+    limite:"La zone euro est traitée d'un bloc alors que ses membres n'y pèsent pas également, la crise grecque l'a montré. Le « péché originel » (Eichengreen et Hausmann, 1999) fournirait un indicateur continu.",
+    source:{txt:"FMI, Currency Composition of Official Foreign Exchange Reserves (COFER)", url:"https://data.imf.org/en/datasets/IMF.STA:COFER"} },
+  { key:'REP',  label:'REPRÉSENTATION', sub:'ONU, FMI, clubs', kind:'crit',
+    indicateur:"Droit de veto au Conseil de sécurité, appartenance aux G7-G20, quote-part au FMI",
+    rings:[['Veto ONU'],['G7-G20, poids','au FMI'],['Présent sans','poids décisif'],['Marginal']],
+    bareme:["Membre permanent du Conseil de sécurité (droit de veto)","Membre du G7 ou du G20, ou quote-part FMI supérieure à 1,5 %","Membre de l'OCDE ou poids intermédiaire","Marginal dans les enceintes de décision"],
+    limite:"Les quotes-parts FMI sont publiques et permettraient un score continu plutôt que des paliers.",
+    source:{txt:"FMI, quotes-parts et droits de vote", url:"https://www.imf.org/en/About/executive-board/members-quotas"} },
+  { key:'NOR',  label:'NORMES', sub:'techniques et juridiques', kind:'crit',
+    indicateur:"Capacité à écrire les règles : secrétariats de normalisation, origine des standards techniques, comptables et juridiques",
+    rings:[['Prescrit'],['Participe aux','négociations'],['Applique'],['Contraint']],
+    bareme:["Prescripteur mondial : héberge les organismes de normalisation, exporte son droit et ses standards","Participe réellement aux négociations (dont membres de l'UE, via l'effet Bruxelles)","Applique les normes sans les négocier","Contraint par des règles asymétriques (clauses investisseur-État, conditionnalités)"],
+    limite:"Le nombre de secrétariats ISO/IEC détenus par pays est public et ferait un indicateur partiellement calculable.",
+    source:{txt:"Bradford (2020) ; ISO, répartition des secrétariats techniques", url:"https://www.iso.org/members.html"} },
+  { key:'SP',   label:'SOFT POWER', sub:'et capital culturel', kind:'data',
+    indicateur:"Rang dans le Brand Finance Global Soft Power Index (enquête mondiale annuelle, 193 pays)",
+    rings:[['Top 10'],['Top 30'],['Top 60'],['Au-delà']],
+    bareme:["Top 10 mondial","Rangs 11 à 30","Rangs 31 à 60","Au-delà du rang 60 ou hors classement"],
+    limite:"Le soft power mesuré par sondage reflète aussi la notoriété économique ; l'indice est produit par un cabinet privé, pas par une institution académique.",
+    source:{txt:"Brand Finance, Global Soft Power Index 2026", url:"https://brandirectory.com/softpower/"} },
+  { key:'POIDS',label:'POIDS', sub:'de marché', kind:'data',
+    indicateur:"Part du PIB mondial (PIB nominal, Banque mondiale 2024)",
+    rings:[['≥3,5 % PIB'],['1 à 3,5 %'],['0,15 à 1 %'],['Moins de','0,15 %']],
+    bareme:["3,5 % du PIB mondial ou plus","1 à 3,5 %","0,15 à 1 %","Moins de 0,15 %"],
+    limite:"Le poids collectif du marché unique européen n'est pas capté : chaque membre est compté séparément, alors que le levier commercial s'exerce à l'échelle de l'UE (effet Bruxelles).",
+    source:{txt:"Banque mondiale, GDP current US$ (NY.GDP.MKTP.CD), 2024", url:"https://data.worldbank.org/indicator/NY.GDP.MKTP.CD"} },
+  { key:'MOB',  label:'MOBILITÉ', sub:'des citoyens (passeport)', kind:'data',
+    indicateur:"Nombre de destinations accessibles sans visa préalable (Henley Passport Index, données IATA)",
+    rings:[['≥170 dest.'],['120 à 169'],['60 à 119'],['Moins de 60']],
+    bareme:["170 destinations sans visa ou plus","120 à 169","60 à 119","Moins de 60"],
+    limite:"La liberté de circulation encode en partie des hiérarchies raciales et postcoloniales (Mau et al., 2015) : cet axe remplace, en l'objectivant, l'axe « perception internationale » de la première version.",
+    source:{txt:"Henley Passport Index, édition 2026", url:"https://www.henleyglobal.com/passport-index"} },
+  { key:'ECO',  label:'DETTE ÉCOLOGIQUE', sub:'émissions cumulées', kind:'data',
+    indicateur:"Émissions de CO2 cumulées depuis 1850 rapportées à la population actuelle (Global Carbon Project via Our World in Data)",
+    rings:[['≥600 t/hab'],['250 à 599'],['60 à 249'],['Moins de 60']],
+    bareme:["600 tonnes de CO2 cumulées par habitant ou plus : le pays s'est industrialisé au carbone sans en payer le prix","250 à 599 tonnes","60 à 249 tonnes","Moins de 60 tonnes : le pays n'a presque rien émis du stock qui dérègle le climat"],
+    limite:"Rapporter le cumul historique à la population actuelle est une convention (défendue par Hickel, 2020, dans une approche par part égale). D'autres attributions donnent d'autres classements.",
+    source:{txt:"Global Carbon Project via Our World in Data, émissions cumulées", url:"https://ourworldindata.org/grapher/cumulative-co-emissions"} },
+];
+
+// ═══════════════ ROUE SVG ═══════════════
+const CX=500, CY=500;
+const R=[26,132,210,282,350];
+const LBL=376;
+const COLORS=['#E06030','#D8482C','#C93340','#B52258','#9C1A74','#7F1E8E',
+              '#63289F','#4B36B0','#3A47B4','#2A58B0','#1B68AC','#0E78A8'];
+const N=SECTORS.length;
+const STEP=(2*Math.PI)/N, GAP=0.016, TOP=-Math.PI/2;
+const NS='http://www.w3.org/2000/svg';
+const svg=document.getElementById('wheel');
+const el=t=>document.createElementNS(NS,t);
+const set=(n,a)=>{ for(const[k,v]of Object.entries(a))n.setAttribute(k,String(v));return n; };
+const cart=(r,a)=>[CX+r*Math.cos(a),CY+r*Math.sin(a)];
+
+function arcPath(r1,r2,a1,a2){
+  const[ax,ay]=cart(r1,a1),[bx,by]=cart(r2,a1);
+  const[cx2,cy2]=cart(r2,a2),[dx,dy]=cart(r1,a2);
+  const lg=(a2-a1)>Math.PI?1:0;
+  return`M${ax},${ay}L${bx},${by}A${r2},${r2},0,${lg},1,${cx2},${cy2}L${dx},${dy}A${r1},${r1},0,${lg},0,${ax},${ay}Z`;
+}
+function blendCream(hex,t){
+  const bg=[255,250,241];
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return`rgb(${Math.round(r+(bg[0]-r)*t)},${Math.round(g+(bg[1]-g)*t)},${Math.round(b+(bg[2]-b)*t)})`;
+}
+const baseFill=(i,r)=>blendCream(COLORS[i],(r/3)*0.84);
+const hiFill  =(i,r)=>blendCream(COLORS[i],(r/3)*0.22);
+const dimFill =(i,r)=>blendCream(COLORS[i],0.93);
+
+const MAX=36;
+let W8=Array(12).fill(1);
+const rawTotal=iso=>DATA[iso].scores.reduce((a,b)=>a+(b||0),0);
+function total(iso){
+  const sw=W8.reduce((a,b)=>a+b,0);
+  if(!sw)return 0;
+  const t=DATA[iso].scores.reduce((a,s,i)=>a+(s||0)*W8[i],0)/sw*12;
+  return Math.round(t*10)/10;
+}
+const fmtScore=v=>Number.isInteger(v)?v:String(v.toFixed(1)).replace('.',',');
+
+function scoreColor(s){
+  const t=s/MAX;
+  const from=[224,96,48],to=[14,120,168];
+  return`rgb(${Math.round(from[0]+(to[0]-from[0])*t)},${Math.round(from[1]+(to[1]-from[1])*t)},${Math.round(from[2]+(to[2]-from[2])*t)})`;
+}
+function scoreLabel(s){
+  if(s>=29)return'Très privilégié';
+  if(s>=21)return'Privilégié';
+  if(s>=12)return'Modérément privilégié';
+  if(s>=6) return'Peu privilégié';
+  return'Très peu privilégié';
+}
+function gdpFmt(n){
+  if(n==null)return'n.d.';
+  if(n>=1000){
+    const k=Math.floor(n/1000), r=Math.round(n%1000).toString().padStart(3,'0');
+    return k+' '+r+' Md$';
+  }
+  return Math.round(n)+' Md$';
+}
+function arcTextD(r,a1,a2,mid){
+  const flip=Math.sin(mid)>=0;
+  const[fa,ta]=flip?[a2,a1]:[a1,a2];
+  const[sx,sy]=cart(r,fa),[ex,ey]=cart(r,ta);
+  return`M${sx},${sy} A${r},${r},0,0,${flip?0:1},${ex},${ey}`;
+}
+
+const defs=svg.appendChild(el('defs'));
+SECTORS.forEach((_,i)=>{
+  for(let r=0;r<4;r++){
+    const a1=TOP+i*STEP+GAP,a2=TOP+(i+1)*STEP-GAP,mid=(a1+a2)/2;
+    const cp=el('clipPath'); cp.id=`cp${i}${r}`;
+    set(cp.appendChild(el('path')),{d:arcPath(R[r]+1,R[r+1]-1,a1+.006,a2-.006)});
+    defs.appendChild(cp);
+    const midR=(R[r]+R[r+1])/2,nL=r===0?1:2,lh=r===0?0:11;
+    const dir=Math.sin(mid)>=0?1:-1; // haut de la roue : ordre des lignes inversé
+    for(let l=0;l<nL;l++){
+      const lr=midR+dir*(l-(nL-1)/2)*lh;
+      const p=el('path'); p.id=`ap${i}${r}${l}`;
+      set(p,{d:arcTextD(lr,a1,a2,mid)});
+      defs.appendChild(p);
+    }
+  }
+});
+
+set(svg.appendChild(el('rect')),{x:0,y:0,width:1000,height:1000,fill:'#FFFAF1'});
+
+const shapes=[];
+SECTORS.forEach((_,i)=>{
+  shapes[i]=[];
+  const a1=TOP+i*STEP+GAP,a2=TOP+(i+1)*STEP-GAP;
+  for(let r=0;r<4;r++){
+    const p=svg.appendChild(el('path'));
+    p.setAttribute('d',arcPath(R[r],R[r+1],a1,a2));
+    p.style.fill=baseFill(i,r);
+    p.style.transition='fill 0.3s ease, stroke 0.3s ease';
+    p.setAttribute('stroke','#FFFAF1');
+    p.setAttribute('stroke-width','1.5');
+    shapes[i][r]=p;
+  }
+});
+
+[R[1],R[2],R[3]].forEach(r=>
+  set(svg.appendChild(el('circle')),{cx:CX,cy:CY,r,fill:'none',stroke:'#FFFAF1','stroke-width':2.5})
+);
+set(svg.appendChild(el('circle')),{cx:CX,cy:CY,r:R[4],fill:'none',stroke:'#e0d8d0','stroke-width':1.5});
+SECTORS.forEach((_,i)=>{
+  const a=TOP+i*STEP;
+  const[x1,y1]=cart(R[0],a),[x2,y2]=cart(R[4]+2,a);
+  set(svg.appendChild(el('line')),{x1,y1,x2,y2,stroke:'#FFFAF1','stroke-width':3});
+});
+set(svg.appendChild(el('circle')),{cx:CX,cy:CY,r:R[0],fill:'#12101E'});
+
+// marqueurs de comparaison (pays B) : anneaux en pointillé par-dessus
+const bMarks=[];
+SECTORS.forEach((_,i)=>{
+  bMarks[i]=[];
+  const a1=TOP+i*STEP+GAP,a2=TOP+(i+1)*STEP-GAP;
+  for(let r=0;r<4;r++){
+    const p=svg.appendChild(el('path'));
+    p.setAttribute('d',arcPath(R[r]+3,R[r+1]-3,a1+.012,a2-.012));
+    set(p,{fill:'none',stroke:'#12101E','stroke-width':2.5,'stroke-dasharray':'7 5',opacity:0,'pointer-events':'none'});
+    bMarks[i][r]=p;
+  }
+});
+
+const FS=[7.5,8.5,9,9.5];
+SECTORS.forEach((sec,i)=>{
+  for(let r=0;r<4;r++){
+    const nL=r===0?1:2,lines=sec.rings[r].slice(0,nL);
+    const col=r<2?'#FFFAF1':'#2e2838';
+    const g=svg.appendChild(el('g'));
+    g.setAttribute('clip-path',`url(#cp${i}${r})`);
+    g.setAttribute('pointer-events','none');
+    lines.forEach((line,l)=>{
+      const t=g.appendChild(el('text'));
+      set(t,{fill:col,'font-size':FS[r],'font-weight':r<2?600:400,
+             'font-family':"'Inter',system-ui,sans-serif",
+             'text-anchor':'middle','dominant-baseline':'central'});
+      const tp=t.appendChild(el('textPath'));
+      tp.setAttribute('href',`#ap${i}${r}${l}`);
+      tp.setAttribute('startOffset','50%');
+      tp.textContent=line;
+    });
+  }
+});
+
+SECTORS.forEach((sec,i)=>{
+  const mid=TOP+(i+0.5)*STEP;
+  const[lx,ly]=cart(LBL+20,mid);
+  const lt=svg.appendChild(el('text'));
+  set(lt,{x:lx,y:ly-7,'text-anchor':'middle','dominant-baseline':'middle',
+          fill:COLORS[i],'font-size':11.5,'font-weight':800,
+          'font-family':"'League Spartan','Inter',sans-serif",'letter-spacing':'0.04em'});
+  lt.textContent=sec.label;
+  const ls=svg.appendChild(el('text'));
+  set(ls,{x:lx,y:ly+8.5,'text-anchor':'middle','dominant-baseline':'middle',
+          fill:'#9a8fa8','font-size':8.2,'font-family':"'Inter',system-ui,sans-serif"});
+  ls.textContent=sec.sub;
+});
+
+const C_LINES=['LA ROUE','DES','PRIVILÈGES'];
+const cEls=C_LINES.map((line,i)=>{
+  const t=svg.appendChild(el('text'));
+  set(t,{x:CX,y:CY-11+i*13.5,'text-anchor':'middle','dominant-baseline':'middle',
+         fill:'#FFFAF1','font-size':8.5,'font-weight':700,
+         'font-family':"'League Spartan','Inter',sans-serif",'letter-spacing':'0.06em'});
+  t.textContent=line;
+  return t;
+});
+
+// ═══════════════ ÉTAT & INTERACTION ═══════════════
+const isoList=Object.keys(DATA);
+let privSorted=[], privRanks={};
+function computeRanks(){
+  privSorted=isoList.slice().sort((a,b)=>total(b)-total(a));
+  privRanks={}; privSorted.forEach((iso,i)=>privRanks[iso]=i+1);
+}
+computeRanks();
+const gdpSorted=isoList.filter(i=>DATA[i].raw.gdp_bn!=null).sort((a,b)=>DATA[b].raw.gdp_bn-DATA[a].raw.gdp_bn);
+const hdiSorted=isoList.filter(i=>DATA[i].raw.hdi!=null).sort((a,b)=>DATA[b].raw.hdi-DATA[a].raw.hdi);
+const gdpRanks={}, hdiRanks={};
+gdpSorted.forEach((n,i)=>gdpRanks[n]=i+1);
+hdiSorted.forEach((n,i)=>hdiRanks[n]=i+1);
+
+let selA=null, selB=null, compareMode=false;
+
+function paintWheel(){
+  SECTORS.forEach((_,i)=>{
+    for(let r=0;r<4;r++){
+      const s=shapes[i][r];
+      if(!selA){ s.style.fill=baseFill(i,r); }
+      else{
+        const ring=3-(DATA[selA].scores[i]??0);
+        s.style.fill=(r===ring)?hiFill(i,r):dimFill(i,r);
+      }
+      bMarks[i][r].setAttribute('opacity','0');
+    }
+  });
+  if(selB){
+    SECTORS.forEach((_,i)=>{
+      const ring=3-(DATA[selB].scores[i]??0);
+      bMarks[i][ring].setAttribute('opacity','1');
+    });
+  }
+  if(selA&&selB){
+    cEls[0].textContent=shortName(selA);
+    cEls[1].textContent='vs';
+    cEls[2].textContent=shortName(selB);
+  } else if(selA){
+    cEls[0].textContent=shortName(selA);
+    cEls[1].textContent=fmtScore(total(selA));
+    cEls[2].textContent='/ '+MAX;
+  } else {
+    cEls.forEach((t,i)=>t.textContent=C_LINES[i]);
+  }
+}
+function shortName(iso){
+  const n=DATA[iso].name;
+  return n.length>11?n.split(/[\s-]/)[0].toUpperCase():n.toUpperCase();
+}
+
+function axisRawLabel(iso,i){
+  const raw=DATA[iso].raw, sec=SECTORS[i];
+  switch(sec.key){
+    case 'RES': return raw.rent_bn!=null?`rente ${raw.rent_bn<10?raw.rent_bn:Math.round(raw.rent_bn)} Md$/an`:'estimation';
+    case 'VUL': return raw.ndgain_vul!=null?`ND-GAIN ${String(raw.ndgain_vul).replace('.',',')}`:'n.d.';
+    case 'SP':  return raw.sp_rank!=null?`rang ${raw.sp_rank}`:'hors classement';
+    case 'POIDS': return raw.gdp_share!=null?`${String(raw.gdp_share).replace('.',',')} % du PIB mondial`:'n.d.';
+    case 'MOB': return raw.henley!=null?`${raw.henley} destinations`:'n.d.';
+    case 'ECO': return raw.cumco2_percap!=null?`${raw.cumco2_percap} t CO2/hab cumulées`:'n.d.';
+    default: {
+      const t=sec.bareme[3-(DATA[iso].scores[i]??0)].split(' (')[0].split(' : ')[0];
+      return t.length>52?t.slice(0,52).replace(/\s+\S*$/,'')+'\u2026':t;
+    }
+  }
+}
+
+function renderPanel(){
+  const panel=document.getElementById('score-panel');
+  const head=document.getElementById('sp-head');
+  const detail=document.getElementById('sp-detail');
+  if(!selA){ panel.classList.remove('visible'); return; }
+  panel.classList.add('visible');
+  head.innerHTML='';
+  [[selA,'#E06030'],[selB,'#12101E']].forEach(([iso,color])=>{
+    if(!iso)return;
+    const sc=total(iso), col=scoreColor(sc);
+    const div=document.createElement('div');
+    div.className='sp-country';
+    div.innerHTML=`
+      <div class="sp-name"><span class="sp-swatch" style="background:${color};${iso===selB?'border-radius:50%;border:2px dashed #12101E;background:transparent;':''}"></span>${DATA[iso].name}</div>
+      <div class="sp-row"><div class="sp-num" style="color:${col}">${fmtScore(sc)}</div><div class="sp-denom">/ ${MAX}</div></div>
+      <div class="sp-bar-bg"><div class="sp-bar-fill" style="width:${sc/MAX*100}%;background:${col}"></div></div>
+      <div class="sp-label">${scoreLabel(sc)}</div>`;
+    head.appendChild(div);
+  });
+  // détail des axes : une colonne par pays, alignée sous son nom
+  const two=selB?' two':'';
+  const cell=(iso,i)=>{
+    const s=DATA[iso].scores[i]??0;
+    const dots=Array.from({length:3},(_,k)=>
+      `<span class="axd-dot" style="${k<s?`background:${COLORS[i]}`:''}"></span>`).join('');
+    return `<div class="axd-cell"><div class="axd-dots">${dots}</div>
+      <div class="axd-val">${axisRawLabel(iso,i)}</div></div>`;
+  };
+  detail.innerHTML=
+    `<div class="axd-row axd-head-row${two}"><div></div>
+       <div class="axd-col-name" style="color:#E06030">${DATA[selA].name}</div>
+       ${selB?`<div class="axd-col-name">${DATA[selB].name}</div>`:''}
+     </div>`+
+    SECTORS.map((sec,i)=>
+      `<div class="axd-row${two}">
+         <div class="axd-name" style="color:${COLORS[i]}">${sec.label}</div>
+         ${cell(selA,i)}${selB?cell(selB,i):''}
+       </div>`).join('');
+}
+
+function syncRows(){
+  document.querySelectorAll('tbody tr').forEach(tr=>{
+    tr.classList.toggle('active', tr.dataset.iso===selA);
+    tr.classList.toggle('active-b', tr.dataset.iso===selB);
+  });
+}
+
+function selectCountry(iso){
+  if(compareMode&&selA&&iso!==selA){
+    selB=(selB===iso)?null:iso;
+  } else if(selA===iso){
+    selA=selB; selB=null;
+    if(!selA){ closeAll(); return; }
+  } else {
+    selA=iso; if(selB===iso)selB=null;
+  }
+  paintWheel(); renderPanel(); syncRows(); updateHash();
+}
+function closeAll(){
+  selA=null; selB=null;
+  paintWheel(); renderPanel(); syncRows(); updateHash();
+}
+document.getElementById('sp-close').addEventListener('click',closeAll);
+document.getElementById('sp-detail-toggle').addEventListener('click',()=>{
+  const d=document.getElementById('sp-detail');
+  d.classList.toggle('open');
+  document.getElementById('sp-detail-toggle').textContent=
+    d.classList.contains('open')?'Masquer le détail':'Voir le détail des 12 axes';
+});
+document.getElementById('chip-compare').addEventListener('click',e=>{
+  compareMode=!compareMode;
+  e.target.classList.toggle('on',compareMode);
+  if(!compareMode&&selB){ selB=null; paintWheel(); renderPanel(); syncRows(); }
+});
+document.querySelectorAll('.chip-preset').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    compareMode=true;
+    document.getElementById('chip-compare').classList.add('on');
+    selA=chip.dataset.a; selB=chip.dataset.b;
+    paintWheel(); renderPanel(); syncRows(); updateHash();
+    document.getElementById('sp-detail').classList.add('open');
+    document.getElementById('sp-detail-toggle').textContent='Masquer le détail';
+    document.getElementById('score-panel').scrollIntoView({behavior:'smooth',block:'center'});
+  });
+});
+
+// ═══════════════ RECHERCHE ═══════════════
+const searchInput=document.getElementById('search');
+const srPanel=document.getElementById('sr-panel');
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+searchInput.addEventListener('input',()=>{
+  const q=norm(searchInput.value.trim());
+  if(!q){ srPanel.classList.remove('open'); return; }
+  const hits=isoList.filter(iso=>norm(DATA[iso].name).includes(q)).slice(0,8);
+  srPanel.innerHTML=hits.map(iso=>
+    `<div class="sr-item" data-iso="${iso}">${DATA[iso].name} · ${fmtScore(total(iso))}/${MAX}</div>`).join('')
+    ||'<div class="sr-item" style="color:#b0a9b5">Pays absent de cette version</div>';
+  srPanel.classList.add('open');
+  srPanel.querySelectorAll('.sr-item[data-iso]').forEach(item=>{
+    item.addEventListener('click',()=>{
+      selectCountry(item.dataset.iso);
+      srPanel.classList.remove('open');
+      searchInput.value='';
+      document.getElementById('score-panel').scrollIntoView({behavior:'smooth',block:'center'});
+    });
+  });
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#search')&&!e.target.closest('.sr-panel'))srPanel.classList.remove('open');
+});
+
+// ═══════════════ TABLES ═══════════════
+function buildArrow(tableRank,pRank){
+  const delta=tableRank-pRank;
+  if(delta>0) return`<span class="rank-arrow rank-up">${pRank}<span style="font-size:.58em">&#x2191;</span></span>`;
+  if(delta<0) return`<span class="rank-arrow rank-down">${pRank}<span style="font-size:.58em">&#x2193;</span></span>`;
+  return`<span class="rank-arrow rank-same">${pRank}</span>`;
+}
+function scoreCell(iso,center){
+  const sc=total(iso), col=scoreColor(sc);
+  return`<div class="score-inline"${center?' style="justify-content:center"':''}>
+    <span class="score-val" style="color:${col}">${fmtScore(sc)}</span>
+    <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${sc/MAX*100}%;background:${col}"></div></div></div>`;
+}
+function buildTable(bodyId,sorted,valueFmt){
+  const tbody=document.getElementById(bodyId);
+  sorted.forEach((iso,idx)=>{
+    const tr=document.createElement('tr');
+    tr.dataset.iso=iso;
+    tr.innerHTML=`<td class="td-rank">${idx+1}</td>
+      <td class="td-country" title="${DATA[iso].name}">${DATA[iso].name}</td>
+      <td class="td-value">${valueFmt(iso)}</td>
+      <td class="td-privrank">${buildArrow(idx+1,privRanks[iso])}</td>
+      <td class="td-score">${scoreCell(iso)}</td>`;
+    tr.addEventListener('click',()=>selectCountry(iso));
+    tbody.appendChild(tr);
+  });
+}
+function buildAllTables(){
+  ['gdp-body','hdi-body','priv-body'].forEach(id=>{document.getElementById(id).innerHTML='';});
+  buildTable('gdp-body',gdpSorted,iso=>gdpFmt(DATA[iso].raw.gdp_bn));
+  buildTable('hdi-body',hdiSorted,iso=>DATA[iso].raw.hdi.toFixed(3).replace('.',','));
+  const tbody=document.getElementById('priv-body');
+  privSorted.forEach((iso,idx)=>{
+    const tr=document.createElement('tr');
+    tr.dataset.iso=iso;
+    tr.innerHTML=`<td class="td-rank">${idx+1}</td>
+      <td class="td-country" title="${DATA[iso].name}">${DATA[iso].name}</td>
+      <td class="td-privrank">${scoreCell(iso,true)}</td>
+      <td class="td-privrank">${gdpRanks[iso]||'n.d.'}</td>
+      <td class="td-privrank">${hdiRanks[iso]||'n.d.'}</td>`;
+    tr.addEventListener('click',()=>selectCountry(iso));
+    tbody.appendChild(tr);
+  });
+  syncRows();
+}
+buildAllTables();
+
+// ═══════════════ PONDÉRATIONS ═══════════════
+(function(){
+  const grid=document.getElementById('wp-grid');
+  SECTORS.forEach((sec,i)=>{
+    const row=document.createElement('div');
+    row.className='wp-row';
+    row.innerHTML=`<span class="wp-label" style="color:${COLORS[i]}">${sec.label}</span>
+      <input type="range" min="0" max="2" step="0.25" value="1" data-axis="${i}">
+      <span class="wp-val" id="wp-val-${i}">1</span>`;
+    grid.appendChild(row);
+  });
+  let timer=null;
+  grid.addEventListener('input',e=>{
+    if(e.target.type!=='range')return;
+    const i=+e.target.dataset.axis;
+    W8[i]=+e.target.value;
+    document.getElementById('wp-val-'+i).textContent=String(W8[i]).replace('.',',');
+    clearTimeout(timer);
+    timer=setTimeout(()=>{ computeRanks(); buildAllTables(); renderPanel(); paintWheel(); },200);
+  });
+  document.getElementById('wp-reset').addEventListener('click',()=>{
+    W8=Array(12).fill(1);
+    grid.querySelectorAll('input[type=range]').forEach(r=>{r.value=1;});
+    grid.querySelectorAll('.wp-val').forEach(v=>{v.textContent='1';});
+    computeRanks(); buildAllTables(); renderPanel(); paintWheel();
+  });
+  document.getElementById('chip-weights').addEventListener('click',e=>{
+    const panel=document.getElementById('weights-panel');
+    panel.classList.toggle('open');
+    e.target.classList.toggle('on',panel.classList.contains('open'));
+    if(panel.classList.contains('open'))panel.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+})();
+
+// ═══════════════ PERMALIENS ═══════════════
+function updateHash(){
+  const frag=selA?(selB?`${selA}-vs-${selB}`:selA):'';
+  history.replaceState(null,'',frag?'#'+frag:location.pathname+location.search);
+}
+(function(){
+  const m=location.hash.replace('#','').match(/^([A-Za-z]{3})(?:-vs-([A-Za-z]{3}))?$/);
+  if(!m)return;
+  const a=m[1].toUpperCase(), b=(m[2]||'').toUpperCase();
+  if(!DATA[a])return;
+  selA=a;
+  if(b&&DATA[b]&&b!==a){
+    selB=b; compareMode=true;
+    document.getElementById('chip-compare').classList.add('on');
+  }
+  paintWheel(); renderPanel(); syncRows();
+})();
+
+// ═══════════════ IMAGE DE PARTAGE ═══════════════
+document.getElementById('sp-share').addEventListener('click',async()=>{
+  if(!selA)return;
+  const Wc=1240,Hc=1560;
+  const c=document.createElement('canvas'); c.width=Wc; c.height=Hc;
+  const x=c.getContext('2d');
+  x.fillStyle='#FFFAF1'; x.fillRect(0,0,Wc,Hc);
+  x.textAlign='center';
+  x.fillStyle='#12101E';
+  x.font='800 46px "League Spartan",sans-serif';
+  x.fillText('La roue des privilèges des États',Wc/2,86);
+  x.font='800 38px "League Spartan",sans-serif';
+  let y=170;
+  x.fillStyle='#E06030';
+  x.fillText(`${DATA[selA].name} · ${fmtScore(total(selA))} / ${MAX}`,Wc/2,y);
+  if(selB){
+    y+=54; x.fillStyle='#12101E';
+    x.fillText(`${DATA[selB].name} · ${fmtScore(total(selB))} / ${MAX} (pointillés)`,Wc/2,y);
+  }
+  const ser=new XMLSerializer().serializeToString(svg);
+  const img=new Image();
+  await new Promise((ok,ko)=>{
+    img.onload=ok; img.onerror=ko;
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(ser);
+  });
+  x.drawImage(img,20,selB?250:200,1200,1200);
+  x.fillStyle='#9a8fa8'; x.font='26px Inter,system-ui,sans-serif';
+  x.fillText('arthurmassonneau.net/roue-des-privileges',Wc/2,Hc-42);
+  c.toBlob(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    a.download=`roue-privileges-${selA}${selB?'-vs-'+selB:''}.png`;
+    a.click();
+  },'image/png');
+});
+
+// ═══════════════ ACCORDÉON MÉTHODO ═══════════════
+(function(){
+  const box=document.getElementById('axes-accordion');
+  SECTORS.forEach((sec,i)=>{
+    const item=document.createElement('div');
+    item.className='axe-item';
+    item.innerHTML=`
+      <div class="axe-head">
+        <span class="axe-dot" style="background:${COLORS[i]}"></span>
+        <span class="axe-title">${sec.label} <span style="font-weight:400;color:#9a8fa8;font-size:.76rem">${sec.sub}</span></span>
+        <span class="axe-kind ${sec.kind==='data'?'kind-data':'kind-crit'}">${sec.kind==='data'?'donnée':'critères'}</span>
+        <span class="axe-caret">&#9654;</span>
+      </div>
+      <div class="axe-body">
+        <dl class="axe-grid">
+          <dt>Indicateur</dt><dd>${sec.indicateur}</dd>
+          <dt>Source</dt><dd>${sec.source.url?`<a href="${sec.source.url}" target="_blank" rel="noopener">${sec.source.txt}</a>`:sec.source.txt}</dd>
+        </dl>
+        <div class="bareme">
+          ${sec.bareme.map((b,k)=>`<div class="bareme-row"><span class="bareme-pts" style="color:${COLORS[i]}">${3-k}</span><span>${b}</span></div>`).join('')}
+        </div>
+        <p class="axe-limite">Limite : ${sec.limite}</p>
+      </div>`;
+    item.querySelector('.axe-head').addEventListener('click',()=>item.classList.toggle('open'));
+    box.appendChild(item);
+  });
+})();
+
+// ═══════════════ SOURCES DONNÉES ═══════════════
+(function(){
+  const items=[
+    ['PIB nominal 2024 (2023 pour quelques pays, daté dans les données)','Banque mondiale, World Development Indicators','https://data.worldbank.org/indicator/NY.GDP.MKTP.CD'],
+    ['Indice de développement humain (dernière année publiée)','PNUD, Human Development Report, via Our World in Data','https://ourworldindata.org/human-development-index'],
+    ['Rente des ressources naturelles (% du PIB)','Banque mondiale, World Development Indicators','https://data.worldbank.org/indicator/NY.GDP.TOTL.RT.ZS'],
+    ['Vulnérabilité climatique','ND-GAIN Country Index 2026, université de Notre Dame','https://gain.nd.edu/our-work/country-index/'],
+    ['Émissions de CO2 cumulées et population','Global Carbon Project et Banque mondiale, via Our World in Data','https://ourworldindata.org/grapher/cumulative-co-emissions'],
+    ['Mobilité des passeports','Henley Passport Index (données IATA), édition 2026','https://www.henleyglobal.com/passport-index'],
+    ['Soft power','Brand Finance, Global Soft Power Index 2026','https://brandirectory.com/softpower/'],
+    ['Réserves de change par monnaie','FMI, COFER','https://data.imf.org/en/datasets/IMF.STA:COFER'],
+    ['Quotes-parts FMI','FMI, Members’ Quotas and Voting Power','https://www.imf.org/en/About/executive-board/members-quotas'],
+  ];
+  document.getElementById('refs-data').innerHTML=items.map(([what,who,url])=>
+    `<li>${what} · <a href="${url}" target="_blank" rel="noopener">${who}</a></li>`).join('');
+})();
+
+// ═══════════════ EXPORT CSV ═══════════════
+document.getElementById('csv-btn').addEventListener('click',()=>{
+  const axKeys=SECTORS.map(s=>s.key);
+  const head=['iso3','pays',...axKeys.map(k=>'score_'+k),'total','pib_mds_usd','annee_pib','part_pib_mondial_pct','idh','annee_idh','rente_ressources_mds_usd','ndgain_vulnerabilite','henley_destinations','softpower_rang','co2_cumule_t_par_hab'];
+  const rows=privSorted.map(iso=>{
+    const d=DATA[iso], r=d.raw;
+    return [iso,'"'+d.name+'"',...d.scores.map(s=>s??''),rawTotal(iso),
+      r.gdp_bn??'',r.gdp_year??'',r.gdp_share??'',r.hdi??'',r.hdi_year??'',
+      r.rent_bn??'',r.ndgain_vul??'',r.henley??'',r.sp_rank??'',r.cumco2_percap??''].join(',');
+  });
+  const csv=[head.join(','),...rows].join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='roue-privileges-etats-'+(META.version||'v2')+'.csv';
+  a.click();
+});
+
+paintWheel();
+</script>
+</body>
+</html>
