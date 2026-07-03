@@ -440,7 +440,7 @@ const SECTORS = [
     source:{txt:"de Swaan (2001), Calvet (1999)", url:null} },
   { key:'GEO',  label:'GÉOGRAPHIE', sub:'accès maritime et position', kind:'crit',
     indicateur:"Accès à la mer et position par rapport aux grandes routes commerciales",
-    rings:[['Routes clés'],['Accès','maritime réel'],['Littoral marginal','ou enclavé intégré'],['Enclavé','périphérique']],
+    rings:[['Routes','clés'],['Accès','maritime réel'],['Littoral marginal','ou enclavé intégré'],['Enclavé','périphérique']],
     bareme:["Long littoral sur les routes maritimes principales, position tempérée","Accès maritime réel, hors des routes principales","Littoral très court, ou pays enclavé au sein d'un marché intégré (Suisse, Autriche)","Enclavé et éloigné des grands marchés (liste des pays en développement sans littoral de l'ONU)"],
     limite:"L'axe mélange accès physique et position relative ; un indicateur composite publié (distance aux marchés, trafic portuaire) serait plus robuste.",
     source:{txt:"Liste ONU des pays en développement sans littoral (UN-OHRLLS)", url:"https://www.un.org/ohrlls/content/list-lldcs"} },
@@ -488,19 +488,19 @@ const SECTORS = [
     source:{txt:"Brand Finance, Global Soft Power Index 2026", url:"https://brandirectory.com/softpower/"} },
   { key:'POIDS',label:'POIDS', sub:'économique (PIB mondial)', kind:'data',
     indicateur:"Part du PIB mondial (PIB nominal, Banque mondiale 2024)",
-    rings:[['≥3,5 % PIB'],['1 à 3,5 %'],['0,15 à 1 %'],['Moins de','0,15 %']],
+    rings:[['≥3,5 %','du PIB'],['1 à 3,5 %'],['0,15 à 1 %'],['Moins de','0,15 %']],
     bareme:["3,5 % du PIB mondial ou plus","1 à 3,5 %","0,15 à 1 %","Moins de 0,15 %"],
     limite:"Le poids collectif du marché unique européen n'est pas capté : chaque membre est compté séparément, alors que le levier commercial s'exerce à l'échelle de l'UE (effet Bruxelles).",
     source:{txt:"Banque mondiale, GDP current US$ (NY.GDP.MKTP.CD), 2024", url:"https://data.worldbank.org/indicator/NY.GDP.MKTP.CD"} },
   { key:'MOB',  label:'MOBILITÉ', sub:'des citoyens (passeport)', kind:'data',
     indicateur:"Nombre de destinations accessibles sans visa préalable (Henley Passport Index, données IATA)",
-    rings:[['≥170 dest.'],['120 à 169'],['60 à 119'],['Moins de 60']],
+    rings:[['≥170','destin.'],['120 à 169'],['60 à 119'],['Moins de 60']],
     bareme:["170 destinations sans visa ou plus","120 à 169","60 à 119","Moins de 60"],
     limite:"La liberté de circulation encode en partie des hiérarchies raciales et postcoloniales (Mau et al., 2015) : cet axe remplace, en l'objectivant, l'axe « perception internationale » de la première version.",
     source:{txt:"Henley Passport Index, édition 2026", url:"https://www.henleyglobal.com/passport-index"} },
   { key:'ECO',  label:'DETTE ÉCOLOGIQUE', sub:'émissions cumulées', kind:'data',
     indicateur:"Émissions de CO2 cumulées depuis 1850 rapportées à la population actuelle (Global Carbon Project via Our World in Data)",
-    rings:[['≥600 t/hab'],['250 à 599'],['60 à 249'],['Moins de 60']],
+    rings:[['≥600 t','CO2/hab'],['250 à 599'],['60 à 249'],['Moins de 60']],
     bareme:["600 tonnes de CO2 cumulées par habitant ou plus : le pays s'est industrialisé au carbone sans en payer le prix","250 à 599 tonnes","60 à 249 tonnes","Moins de 60 tonnes : le pays n'a presque rien émis du stock qui dérègle le climat"],
     limite:"Rapporter le cumul historique à la population actuelle est une convention (défendue par Hickel, 2020, dans une approche par part égale). D'autres attributions donnent d'autres classements.",
     source:{txt:"Global Carbon Project via Our World in Data, émissions cumulées", url:"https://ourworldindata.org/grapher/cumulative-co-emissions"} },
@@ -574,13 +574,15 @@ function arcTextD(r,a1,a2,mid){
 }
 
 const defs=svg.appendChild(el('defs'));
-SECTORS.forEach((_,i)=>{
+SECTORS.forEach((sec,i)=>{
   for(let r=0;r<4;r++){
     const a1=TOP+i*STEP+GAP,a2=TOP+(i+1)*STEP-GAP,mid=(a1+a2)/2;
     const cp=el('clipPath'); cp.id=`cp${i}${r}`;
     set(cp.appendChild(el('path')),{d:arcPath(R[r]+1,R[r+1]-1,a1+.006,a2-.006)});
     defs.appendChild(cp);
-    const midR=(R[r]+R[r+1])/2,nL=r===0?1:2,lh=r===0?0:11;
+    const midR=(R[r]+R[r+1])/2;
+    const nL=r===0?Math.min(sec.rings[0].length,2):2;
+    const lh=r===0?10.5:11;
     const dir=Math.sin(mid)>=0?1:-1; // haut de la roue : ordre des lignes inversé
     for(let l=0;l<nL;l++){
       const lr=midR+dir*(l-(nL-1)/2)*lh;
@@ -635,7 +637,8 @@ SECTORS.forEach((_,i)=>{
 const FS=[7.5,8.5,9,9.5];
 SECTORS.forEach((sec,i)=>{
   for(let r=0;r<4;r++){
-    const nL=r===0?1:2,lines=sec.rings[r].slice(0,nL);
+    const nL=r===0?Math.min(sec.rings[0].length,2):2;
+    const lines=sec.rings[r].slice(0,nL);
     const col=r<2?'#FFFAF1':'#2e2838';
     const g=svg.appendChild(el('g'));
     g.setAttribute('clip-path',`url(#cp${i}${r})`);
