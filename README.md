@@ -46,7 +46,7 @@ Ouvrez une issue avec le gabarit « Contester un score », ou une pull request s
 
 ## Licence et citation
 
-Code : MIT. Données compilées et textes : CC BY 4.0. Les données brutes citées appartiennent à leurs producteurs respectifs (Banque mondiale, PNUD, ND-GAIN, Henley & Partners, Brand Finance, Global Carbon Project).
+L'ensemble du dépôt (données compilées, textes, méthodologie, code, page) est sous licence [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/deed.fr) : réutilisation et adaptation libres avec attribution, utilisation commerciale interdite. Les données brutes citées appartiennent à leurs producteurs respectifs (Banque mondiale, PNUD, ND-GAIN, Henley & Partners, Brand Finance, Global Carbon Project) et suivent leurs propres conditions.
 
 Pour citer ce travail, voir [CITATION.cff](CITATION.cff).
 
